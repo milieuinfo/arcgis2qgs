@@ -1,1 +1,1 @@
-from mxdReader import mxdReader
+from _mxdReader import mxdReader

@@ -1,7 +1,7 @@
 import os, sys
 import xml.etree.cElementTree as ET
 
-class srs:
+class qgsSrs:
     def __init__(self, proj4="", srsid=None, crs=4326, description="", projectionacronym="",
                  ellipsoidacronym="", geographic=False ):
         """
@@ -24,7 +24,7 @@ class srs:
         if geographic: self.geographicflag = "true"
         else: self.geographicflag = "false"
 
-    def crsNode(self):
+    def node(self):
         """
         :return: a ElementTree xml-node of the projection in the QGIS format
         """

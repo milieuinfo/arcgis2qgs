@@ -60,7 +60,4 @@ help/build/*
 *.kdev4
 
 #pyqt files
-ui_*.py
-*_rc.py
-i18n/*.qm
 examples/
