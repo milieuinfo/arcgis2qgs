@@ -3,10 +3,10 @@ import xml.etree.cElementTree as ET
 
 class qgsSrs:
     def __init__(self, proj4="", srsid=None, crs=4326, description="", projectionacronym="",
-                 ellipsoidacronym="", geographic=False ):
+                 ellipsoidacronym="", geographic=False, auth="EPSG" ):
         """
         :param proj4: the proj4 string
-        :param srsid: internal srsid of qgis, leafe empty if unknown
+        :param srsid: internal srsid of qgis, leave empty if unknown
         :param crs: the Well Known ID of hte srs
         :param description: the name/description of the srs
         :param projectionacronym: the projection acronym
@@ -16,7 +16,7 @@ class qgsSrs:
         self.proj4 = proj4
         self.srsid = srsid
         self.srid = str(crs)
-        self.authid = "EPSG:{}".format(crs)
+        self.authid = "{1}:{0}".format(crs, auth)
         self.description =description
         self.projectionacronym = projectionacronym
         self.ellipsoidacronym = ellipsoidacronym

@@ -83,6 +83,6 @@ class qgsWriter:
         tree= ET.ElementTree(self.qgis)
         tree.write(qgsFilePath)
 
-    def log(self):
+    def toSring(self):
         "for debugging purposes"
-        print( ET.tostring( self.qgis ) )
+        return ET.tostring( self.qgis )

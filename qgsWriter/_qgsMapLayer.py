@@ -16,10 +16,10 @@ class qgsMapLayer:
         geomTypes = ["Polygon","Point","Line"]
         dataTypes = ["vector", "raster"]
         #valdiation
-        if  dataType.lower() not in dataTypes:
+        if  dataType not in dataTypes:
             raise Exception(
                 "{0} is not a supported datatype, only {1} are supporded".format(dataType, ", ".join(dataTypes)))
-        if  geometryType not in geomTypes:
+        if dataType == "vector" and geometryType not in geomTypes:
             raise Exception(
                 "{0} is not a supported geometry type, only {1} are supporded".format(geometryType, ", ".join(geomTypes)))
 
@@ -47,24 +47,32 @@ class qgsMapLayer:
 
         if renderer:
             self.renderer = renderer
-        else:
+        elif dataType == "vector" :
             self.setRenderer()
+        else:
+            self.renderer = None
 
     def setDatasource(self, path, layer=None, encoding="UTF-8", provider="ogr"):
         self._datasource = path
         self._encoding = encoding
         self._provider = provider
         if layer:
-            self.datasource += "|layername=" + layer
+            self._datasource += "|layername=" + layer
 
     def setSrs(self, proj4="+proj=longlat +datum=WGS84 +no_defs", srsid=None,
                crs=4326, description="WGS 84", ellipsoidacronym="WGS 84", geographic=True):
         self.srs = qgsSrs(proj4, srsid, crs, description, "", ellipsoidacronym, geographic)
 
     def setRenderer(self, renderer=None):
+        """
+        Set the vector renderer
+        :param renderer: qgsRenderer object, if None a defualt style will be used
+        """
+        if self._type != "vector":
+           return False #only for vectors
         if renderer != None:
            self.renderer = renderer
-           return self.renderer
+           return True
 
         self.renderer = qgsRenderer("singleSymbol")
 
@@ -82,6 +90,12 @@ class qgsMapLayer:
             symbol = qgsSymbol(1,"marker")
             symbol.setSimpleMarker()
             self.renderer.addSymbol(symbol)
+
+        return True
+
+    def rasterrenderer(self):
+        #TODO
+        pass
 
     def node(self):
         """Convert to a XML node object"""
@@ -113,6 +127,6 @@ class qgsMapLayer:
         ET.SubElement(mapLayer, 'srs').append(self.srs.node())
 
         #renderer
-        mapLayer.append( self.renderer.node() )
+        if self.renderer: mapLayer.append( self.renderer.node() )
 
         return mapLayer
