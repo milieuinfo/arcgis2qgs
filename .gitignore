@@ -59,5 +59,8 @@ help/build/*
 .idea/
 *.kdev4
 
-#pyqt files
+#pyt files
+*.pyt.xml
+
 examples/
+tests/

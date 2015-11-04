@@ -92,7 +92,7 @@ class qgsSymbol:
         self.layers.append(layer)
         return layer
 
-    def setSimpleLine(self, color=(255,255,255,255), capstyle="square", joinstyle="bevel",
+    def setSimpleLine(self, color=(0,0,0,255), capstyle="square", joinstyle="bevel",
                      offset=0 , line_width=0.2, useCustomdash=False, customdash=(5,2), unit="MM"  ):
         """
         Set the symbol as a SimpleLine

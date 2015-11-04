@@ -44,11 +44,15 @@ class mxdReader:
 
         for lyr in lyrs:
             layer = {}
-            layer["path"] = lyr.dataSource
-            layer["name"] = lyr.name
+            layer["name"] = lyr.longName
+            layer["visible"] = lyr.visible
 
             if lyr.isFeatureLayer:
                 layer["type"] = "vector"
+
+                if lyr.dataSource.endswith(".shp"): layer["path"] = lyr.dataSource
+                else: layer["path"] = os.path.join( lyr.workspacePath, lyr.datasetName)
+
                 symbols = json.loads( lyr._arc_object.getsymbology() )
                 # example of the symbology json-like dict:
                 # { u'renderer': {
@@ -58,18 +62,24 @@ class mxdReader:
                 #  u'transparency': 0}
                 layer['layout'] = symbols
                 ds = arcpy.Describe( lyr.dataSource )
+
                 if "point" in ds.ShapeType.lower(): layer['geomType'] = "Point"
                 elif "line" in ds.ShapeType.lower(): layer['geomType'] = "Line"
                 elif "polygon" in ds.ShapeType.lower(): layer['geomType'] = "Polygon"
                 else: layer['geomType'] = "Other"
 
-            #TODO: symbology for other types, group layer in a group:
+            #TODO: symbology for rasters, put group layer in a group:
             elif lyr.isGroupLayer:
                 layer["type"] = "group"
+                layer["childern"] = [n.longName for n in arcpy.mapping.ListLayers(lyr)][1:]
+
             elif lyr.isRasterLayer:
                 layer["type"] = "raster"
+                layer["path"] = lyr.dataSource
             else:
                 break
 
             self.layers.append(layer)
 
+    def _layers2json(self):
+        pass

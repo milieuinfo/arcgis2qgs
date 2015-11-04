@@ -4,10 +4,9 @@ import sys, os
 
 import xml.dom.minidom as xml
 
-mxdPath = r'C:\Users\k.warrie\Projects\arcgis2qgs\examples\test.mxd'
-qgsPath = r'C:\Users\k.warrie\Projects\test.qgs'
+mxdPath = r'C:\Users\k.warrie\Projects\arcgis2qgs\examples\test2.mxd'
+qgsPath = r'C:\Users\k.warrie\Projects\tests\test2.qgs'
 mxd = mp.mxdReader(mxdPath)
-
 
 prjSrs = qw.qgsSrs(mxd.crsProj4, None, mxd.crsCode, mxd.crsName,
                    mxd.crsProjectionacronym, mxd.crsEllipsoidacronym, mxd.crsGeographic, mxd.crsAuth)
@@ -15,6 +14,8 @@ prjSrs = qw.qgsSrs(mxd.crsProj4, None, mxd.crsCode, mxd.crsName,
 prjQgs = qw.qgsWriter( projectname=mxd.title, bbox=mxd.bbox, mapUnits=mxd.mapUnits, srs=prjSrs)
 
 for arclyr in mxd.layers:
+    print arclyr
+
     dataType =  arclyr["type"]
 
     if dataType not in [ "vector", "raster" ]: continue #other types are not supported yet
@@ -43,6 +44,6 @@ for arclyr in mxd.layers:
 x= xml.parseString(prjQgs.toSring())
 print( x.toprettyxml() )
 
-fl= open(qgsPath, 'w')
-fl.write( x.toprettyxml())
-fl.close()
+# fl= open(qgsPath, 'w')
+# fl.write( x.toprettyxml())
+# fl.close()
