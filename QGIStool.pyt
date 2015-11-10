@@ -1,5 +1,5 @@
 import arcpy, os
-from convertMxd2qgs import convertMxd
+from mxdTranslator import mxd2qgs
 
 class Toolbox:
     def __init__(self):
@@ -50,4 +50,4 @@ class mxd2qgsTool:
         mxdPath =  parameters[0].valueAsText
         qgsPath =  parameters[1].valueAsText
         startQgis = parameters[2].value
-        convertMxd(mxdPath, qgsPath, startQgis)
+        mxd2qgs().convertMxd(mxdPath, qgsPath, startQgis)

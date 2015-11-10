@@ -1,7 +1,11 @@
-import os, sys
 import xml.etree.ElementTree as ET
 
 class qgsSymbol:
+    #static properties
+    pointTypeNames = ["circle", "square", "cross", "rectangle", "diamond","pentagon","triangle",
+                      "equilateral_triangle","star","regular_star","arrow","filled_arrowhead","x"]
+    measuretypes =  ["MM","Pixel","MapUnit"]
+    dtypes = ["fill","marker","line"]
     def __init__(self, alpha=1, dtype=None, name="0" ):
         """
         A symbol object can be used for rendering
@@ -11,9 +15,9 @@ class qgsSymbol:
         """
         if not ( 1 >= alpha >= 0):
             raise Exception("alfa needs to be in between 1 and 0")
-        if dtype not in ["fill","marker","line"]:
+        if dtype not in self.dtypes:
             raise Exception(
-                "{0} is not a supported geometry type, only Polygon, Line and Marker are supporded".format(dtype))
+                "{0} is not a supported symboly type, only fill, line and marker are supporded".format(dtype))
 
         self.symbol = ET.Element("symbol", alpha=str(alpha), type=dtype, name=name)
         self.layers = []
@@ -33,12 +37,9 @@ class qgsSymbol:
         """
         layer = ET.SubElement(self.symbol, "layer", {"pass":"0", "class":"SimpleMarker", "locked":"0"})
         #validation
-        typeNames = ["circle","square","cross","rectangle","diamond",
-                     "pentagon","triangle","equilateral_triangle","star",
-                     "regular_star","arrow","filled_arrowhead","x"]
-        if not typeName in typeNames:
+        if not typeName in self.pointTypeNames:
             raise Exception("{0} is not a support Typename".format(typeName))
-        if not unit in ["MM","Pixel","MapUnit"]:
+        if not unit in self.measuretypes:
             raise Exception("{0} is not a support unit, only MM, MapUnit and Pixel are supported".format(unit))
 
         #set props
@@ -74,25 +75,25 @@ class qgsSymbol:
         """
         layer = ET.SubElement(self.symbol, "layer", {"pass":"0", "class":"SimpleFill", "locked":"0"})
         #validation
-        if not unit in ["MM","Pixel","MapUnit"]:
+        if not unit in self.measuretypes:
             raise Exception("{0} is not a support unit, only MM, MapUnit and Pixel are supported".format(unit))
 
         #set props
         ET.SubElement(layer, "prop", k="color", v=",".join([str(n) for n in color]) )
         ET.SubElement(layer, "prop", k="color_border", v=",".join([str(n) for n in color_border]) )
-        ET.SubElement(layer, "prop", k="style", v=style_border )
-        ET.SubElement(layer, "prop", k="style_border", v=style_border )
+        ET.SubElement(layer, "prop", k="style", v=style )
         ET.SubElement(layer, "prop", k="offset", v="{0},{1}".format(offset[0],offset[1]) )
         ET.SubElement(layer, "prop", k="outline_width", v=str(outline_width) )
+        ET.SubElement(layer, "prop", k="outline_style", v=style_border )
 
         #assume allways same type of measurement
-        ET.SubElement(layer, "prop", k="border_width_unit", v=unit)
+        ET.SubElement(layer, "prop", k="outline_width_unit", v=unit)
         ET.SubElement(layer, "prop", k="offset_unit", v=unit)
 
         self.layers.append(layer)
         return layer
 
-    def setSimpleLine(self, color=(0,0,0,255), capstyle="square", joinstyle="bevel",
+    def setSimpleLine(self, color=(0,0,0,255), capstyle="square", joinstyle="bevel", line_style ="solid",
                      offset=0 , line_width=0.2, useCustomdash=False, customdash=(5,2), unit="MM"  ):
         """
         Set the symbol as a SimpleLine
@@ -107,14 +108,14 @@ class qgsSymbol:
         """
         layer = ET.SubElement(self.symbol, "layer", {"pass":"0", "class":"SimpleLine", "locked":"0"})
         #validation
-        if not unit in ["MM","Pixel","MapUnit"]:
+        if not unit in self.measuretypes:
             raise Exception("{0} is not a support unit, only MM, MapUnit and Pixel are supported".format(unit))
 
         #set props
         ET.SubElement(layer, "prop", k="capstyle", v=capstyle )
         ET.SubElement(layer, "prop", k="joinstyle", v=joinstyle )
         ET.SubElement(layer, "prop", k="line_color", v=",".join([str(n) for n in color]) )
-        ET.SubElement(layer, "prop", k="line_style", v="solid" )
+        ET.SubElement(layer, "prop", k="line_style", v=line_style )
         ET.SubElement(layer, "prop", k="offset", v=str(offset) )
         ET.SubElement(layer, "prop", k="line_width", v=str(line_width) )
         ET.SubElement(layer, "prop", k="width_map_unit_scale", v="0,0,0,0,0,0" )
