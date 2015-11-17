@@ -45,6 +45,8 @@ class qgsMapLayer:
         self._provider = "ogr"
         self._encoding = ""
 
+        self.customproperties = {}
+
         if renderer:
             self.renderer = renderer
         elif dataType == "vector" :
@@ -128,5 +130,10 @@ class qgsMapLayer:
 
         #renderer
         if self.renderer: mapLayer.append( self.renderer.node() )
+
+        if self.customproperties:
+            customproperties = ET.SubElement(mapLayer, 'customproperties')
+            for key, val in self.customproperties.items():
+                ET.SubElement(customproperties, 'property', {"key":key, "value": val} )
 
         return mapLayer

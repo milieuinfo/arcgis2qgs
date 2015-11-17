@@ -1,4 +1,3 @@
-import os
 from mxdParser import *
 from utils import run_in_other_thread
 from qgsWriter import *
@@ -38,6 +37,7 @@ class mxd2qgs:
             qgsLyr.layerTitle = dataName
 
             if dataType == "vector":
+                #TODO def query
                if dataPath.endswith(".shp"):
                   qgsLyr.setDatasource(dataPath, None, provider="ogr" )
                else:
@@ -55,6 +55,14 @@ class mxd2qgs:
                    render =  self.getPointRender(layout)
 
                if render: qgsLyr.setRenderer( render )
+
+               if 'labelExpression' in arclyr.keys():
+                   expr = arclyr['labelExpression'].replace("[",'').replace("]",'')
+                   qgsLyr.customproperties = {
+                       "labeling": "pal",
+                       "labeling/enabled":"true",
+                       "labeling/fieldName": expr
+                   }
 
             elif dataType == "raster":
                 qgsLyr.setDatasource(dataPath, None, provider="gdal" )

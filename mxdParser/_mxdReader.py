@@ -49,6 +49,7 @@ class mxdReader:
 
             if lyr.isFeatureLayer:
                 layer["type"] = "vector"
+                layer['definitionQuery'] = lyr.definitionQuery
 
                 if lyr.dataSource.endswith(".shp"): layer["path"] = lyr.dataSource
                 else: layer["path"] = os.path.join( lyr.workspacePath, lyr.datasetName)
@@ -68,10 +69,14 @@ class mxdReader:
                 elif "polygon" in ds.ShapeType.lower(): layer['geomType'] = "Polygon"
                 else: layer['geomType'] = "Other"
 
+                if lyr.showLabels and len(lyr.labelClasses):
+                    labelClass = lyr.labelClasses[0]
+                    layer["labelExpression"] = labelClass.expression
+
             #TODO: symbology for rasters, put group layer in a group:
             elif lyr.isGroupLayer:
                 layer["type"] = "group"
-                layer["childern"] = [n.longName for n in arcpy.mapping.ListLayers(lyr)][1:]
+                layer["childeren"] = [n.longName for n in arcpy.mapping.ListLayers(lyr)][1:]
 
             elif lyr.isRasterLayer:
                 layer["type"] = "raster"

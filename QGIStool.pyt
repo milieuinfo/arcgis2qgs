@@ -12,9 +12,9 @@ class Toolbox:
 class mxd2qgsTool:
     def __init__(self):
         self.label       = "MXD to QGIS"
-        self.description = "Convert a MXD to a QGIS .qgs project file, " \
-                           "only shapefiles, FGDB-feature classes en GDAL supported raster will be available. " \
-                           "Markers with icons connot be translated in QGS, simple symbogy will be supported"
+        self.description = "Translate a Arcgis .mxd projectfile to a QGIS .qgs project file, " \
+                           "only shapefiles, FGDB-feature classes en File rasters (like .tif) will be available. " \
+                           "Markers with icons connot be translated in QGS, only simple symbogy will be supported"
 
     def getParameterInfo(self):
         "Define parameter definitions"
