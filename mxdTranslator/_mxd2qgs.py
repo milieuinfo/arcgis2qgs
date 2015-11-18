@@ -8,7 +8,7 @@ class mxd2qgs:
         self.prjSrs = None
         self.prjQgs = None
 
-    def convertMxd(self, mxdPath, qgsPath, startQgis=False  ):
+    def convertMxd(self, mxdPath, qgsPath, startQgis=False ):
         """
         :param mxdPath: path to the input
         :param qgsPath: path to the output qgs-file
@@ -17,7 +17,7 @@ class mxd2qgs:
         self.mxd = mxdReader(mxdPath)
 
         self.prjSrs = qgsSrs(self.mxd.crsProj4, None, self.mxd.crsCode, self.mxd.crsName, self.mxd.crsProjectionacronym,
-                              self.mxd.crsEllipsoidacronym, self.mxd.crsGeographic, self.mxd.crsAuth)
+                             self.mxd.crsEllipsoidacronym, self.mxd.crsGeographic, self.mxd.crsAuth)
 
         self.prjQgs = qgsWriter(projectname= self.mxd.title, bbox= self.mxd.bbox, mapUnits= self.mxd.mapUnits,
                                 srs= self.prjSrs)
@@ -33,7 +33,7 @@ class mxd2qgs:
 
             datageomType = arclyr["geomType"] if dataType == "vector" else None
 
-            qgsLyr = qgsMapLayer(dataName, dataType, datageomType, lyrSrs )
+            qgsLyr = qgsMapLayer(dataName, dataType, datageomType, lyrSrs, visible= arclyr['visible'])
             qgsLyr.layerTitle = dataName
 
             if dataType == "vector":
@@ -69,6 +69,8 @@ class mxd2qgs:
 
             self.prjQgs.addLayer(qgsLyr, checked= arclyr['visible'])
 
+        # tree = self._makeLayerTree()
+        # self.prjQgs.addLayerTree(tree)
         self.prjQgs.save(qgsPath)
 
         if startQgis:
@@ -251,3 +253,45 @@ class mxd2qgs:
             return None
 
         return render
+
+    #-----------private-------------
+    #TODO this only works only for 1 level
+    def _makeLayerTree(self):
+        self.qgsTree = qgsLayerTree()
+        layers = self.prjQgs.layers
+
+        tree = [{"id": k, 'path': v.layerName.split("\\"), "layer": v} for k,v in layers.items()]
+        self._parseTree(tree, self.qgsTree.tree)
+        return self.qgsTree
+
+    # def _parseTree(self, pathTree, layerTree):
+    #
+    #     groupCount = 0
+    #     groups = {}
+    #     subGroups = []
+    #
+    #     for rec in pathTree:
+    #         layerId = rec['id']
+    #         path = rec['path']
+    #         layer = rec['layer']
+    #
+    #         if len(pathTree) == 1:
+    #             self.qgsTree.addLayer(layerId, layer.layerName, layerTree, layer.visible)
+    #
+    #         elif len(pathTree) > 1:
+    #             groupName = path[0]
+    #             subPath = "\\".join( path[1:] )
+    #
+    #             if not groupName in groups.values():
+    #                subTree= layerTree['layers'][groupCount]
+    #                groups[groupCount] = groupName
+    #                self.qgsTree.addGroup( groupName, subTree )
+    #
+    #             subGroups.append({"id": layerId, 'path': subPath, "layer": layer, 'groupID': groupCount})
+    #
+    #         groupCount += 1
+    #
+    #     for groupID in groups.keys():
+    #         subPathTree = [ n for n in subGroups if n['groupID'] == groupID ]
+    #         subLayerTree = layerTree['layers'][groupID]
+    #         self._parseTree(subPathTree, subLayerTree)

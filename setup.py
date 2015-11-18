@@ -1,5 +1,5 @@
 from distutils.core import setup
-setup(name='mxdTranslator',
+setup(name='QGIS Tools for Arcgis',
     description='Translate ESRI Arcgis .mxd files to QGIS .qgs files.',
     author='Kay Warrie',
     author_email='kaywarrie@gmail.com',
@@ -8,7 +8,5 @@ setup(name='mxdTranslator',
     package_dir={'qgsWriter': 'qgsWriter',
                  'mxdTranslator':'mxdTranslator',
                  'mxdParser':'mxdParser'},
-    data_files=[('Lib/site-packages/mxdTranslator/esri/toolboxes', ['QGIStool.pyt'])]  ,
-    # package_data={'mxdTranslator': ['esri/toolboxes/*.*']},
-    scripts=[]
+    data_files=[('Lib/site-packages/mxdTranslator/esri/toolboxes', ['QGIStool.pyt'])]
     )

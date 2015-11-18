@@ -12,3 +12,4 @@ def run_in_other_thread(function):
         thread.start()
         thread.join()
     return fn_
+

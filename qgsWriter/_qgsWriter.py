@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-import sys, os, datetime
+import datetime
 import xml.etree.ElementTree as ET
-from _qgsMapLayer import qgsMapLayer
 from _qgsSrs import qgsSrs
+from _qgsLayerTree import qgsLayerTree
 
 class qgsWriter:
     def __init__(self, projectname="", version="2.0.1-Dufour", bbox=[0,-180,360,-180], srs=None, mapUnits="unknown" ):
@@ -45,6 +45,15 @@ class qgsWriter:
         self.qgis.append(mapcanvas)
         return mapcanvas
 
+    def addLayerTree(self, tree):
+        """
+        :param tree: a instance of qgsLayerTree
+        """
+        if isinstance(tree, qgsLayerTree):
+            self.qgis.append( tree.node() )
+        else:
+            raise Exception("tree is not a qgsLayerTree")
+
     def _addLegendItem(self, layerName, active=False, opened=True, checked=True, visible=True, drawingOrder=-1):
         layerID = layerName + datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
@@ -72,10 +81,11 @@ class qgsWriter:
         return qgsSrs(proj4, srsid, crs, description, "", ellipsoidacronym, geographic)
 
     #--------------Public-----------------#
-    def addLayer(self, mapLayer, active=False, opened=True, checked=True, visible=True, drawingOrder=-1):
+    def addLayer(self, mapLayer, active=False, opened=True, checked=True, visible=True, drawingOrder=-1, group=None):
         layerID = self._addLegendItem( mapLayer.layerName, active, opened, checked, visible, drawingOrder)
         #set new laterID
         mapLayer.layerID = layerID
+        mapLayer.visible = checked
         self.layers[layerID] = mapLayer
         self._addProjectLayerItem(mapLayer)
 

@@ -5,7 +5,7 @@ from _qgsRenderer import qgsRenderer
 from _qgsSymbol import qgsSymbol
 
 class qgsMapLayer:
-    def __init__(self, name, dataType="vector", geometryType=None, srs=None, renderer=None):
+    def __init__(self, name, dataType="vector", geometryType=None, srs=None, renderer=None, visible=True):
         """
         Create a maplayer object, only gdal/ogr sources are supported
         :param name: a name for the layer
@@ -25,6 +25,7 @@ class qgsMapLayer:
 
         #public properties
         self.layerName  = name
+        self.visible = visible
         self.layerTitle  = ""
         self.abstract = ""
         self.keywords = []
@@ -94,10 +95,6 @@ class qgsMapLayer:
             self.renderer.addSymbol(symbol)
 
         return True
-
-    def rasterrenderer(self):
-        #TODO
-        pass
 
     def node(self):
         """Convert to a XML node object"""
