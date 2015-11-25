@@ -107,16 +107,16 @@ class mxd2qgs:
             default_symbol = None
             n = 0
 
-            for uniqueValueInfo in layout['uniqueValueInfos']:
-                color =  uniqueValueInfo['symbol']['color']
-                size = uniqueValueInfo['symbol']['size']
+            for valueInfo in layout['uniqueValueInfos']:
+                color =  valueInfo['symbol']['color']
+                size = valueInfo['symbol']['size']
 
                 outLine_color, outLine_width = ([0,0,0,255], 2)
-                if 'outline' in  uniqueValueInfo['symbol'].keys():
-                    outLine_color = uniqueValueInfo['symbol']['outline']['color']
-                    outLine_width = uniqueValueInfo['symbol']['outline']['width']
+                if 'outline' in  valueInfo['symbol'].keys():
+                    outLine_color = valueInfo['symbol']['outline']['color']
+                    outLine_width = valueInfo['symbol']['outline']['width']
 
-                pointStyle =  uniqueValueInfo['symbol']['style'].lower().replace("esrisms","")
+                pointStyle =  valueInfo['symbol']['style'].lower().replace("esrisms","")
                 if pointStyle not in qgsSymbol.pointTypeNames:
                     pointStyle = "pentagon"
 
@@ -124,7 +124,7 @@ class mxd2qgs:
                 symbol.setSimpleMarker(color=color, color_border=outLine_color, typeName=pointStyle,
                                        outline_width=outLine_width, size=size, unit="Pixel")
 
-                symCat = symbolCategory(uniqueValueInfo['value'], uniqueValueInfo['label'], str(n), symbol)
+                symCat = symbolCategory(valueInfo['value'], valueInfo['label'], str(n), symbol)
                 categoryList.append(symCat)
                 n += 1
 
@@ -146,6 +146,35 @@ class mxd2qgs:
                                                outline_width=outLine_width, size=size, unit="Pixel")
 
             render.addCategorizedSymbols(categoryList, default_symbol)
+
+        elif "classBreakInfos"  in layout.keys():
+            target_attr = layout['field']
+            render = qgsRenderer(symbolType="graduatedSymbol", target_attr=target_attr, graduatedMethod="GraduatedColor")
+            classList = []
+            n = 0
+
+            for valueInfo in layout['classBreakInfos']:
+                color =  valueInfo['symbol']['color']
+                size = valueInfo['symbol']['size']
+
+                outLine_color, outLine_width = ([0,0,0,255], 2)
+                if 'outline' in  valueInfo['symbol'].keys():
+                    outLine_color = valueInfo['symbol']['outline']['color']
+                    outLine_width = valueInfo['symbol']['outline']['width']
+
+                pointStyle =  valueInfo['symbol']['style'].lower().replace("esrisms","")
+                if pointStyle not in qgsSymbol.pointTypeNames:
+                    pointStyle = "pentagon"
+
+                symbol = qgsSymbol(dtype='marker')
+                symbol.setSimpleMarker(color=color, color_border=outLine_color, typeName=pointStyle,
+                                       outline_width=outLine_width, size=size, unit="Pixel")
+
+                symCat = symbolRange(valueInfo['classMinValue'], valueInfo['classMaxValue'], valueInfo['label'], str(n), symbol)
+                classList.append(symCat)
+                n += 1
+            render.addRangedSymbols(classList)
+
         else:
             return None
 
@@ -177,18 +206,18 @@ class mxd2qgs:
             default_symbol = None
             n = 0
 
-            for uniqueValueInfo in layout['uniqueValueInfos']:
-                color =         uniqueValueInfo['symbol']['color']
-                outLine_color = uniqueValueInfo['symbol']['outline']['color']
-                outLine_width = uniqueValueInfo['symbol']['outline']['width']
-                outLine_style = uniqueValueInfo['symbol']['outline']['style'].lower().replace("esrisfs","")
-                fillStyle =     uniqueValueInfo['symbol']['style'].lower().replace("esrisfs","")
+            for valueInfo in layout['uniqueValueInfos']:
+                color =         valueInfo['symbol']['color']
+                outLine_color = valueInfo['symbol']['outline']['color']
+                outLine_width = valueInfo['symbol']['outline']['width']
+                outLine_style = valueInfo['symbol']['outline']['style'].lower().replace("esrisfs","")
+                fillStyle =     valueInfo['symbol']['style'].lower().replace("esrisfs","")
 
                 symbol = qgsSymbol(dtype='fill')
                 symbol.setSimpleFill(color=color, color_border=outLine_color, outline_width=outLine_width,
                                      style_border=outLine_style, style=fillStyle, unit="Pixel")
 
-                symCat = symbolCategory(uniqueValueInfo['value'], uniqueValueInfo['label'], str(n), symbol)
+                symCat = symbolCategory(valueInfo['value'], valueInfo['label'], str(n), symbol)
                 categoryList.append(symCat)
                 n += 1
 
@@ -204,6 +233,29 @@ class mxd2qgs:
                                              style_border=outLine_style, style=fillStyle, unit="Pixel")
 
             render.addCategorizedSymbols(categoryList, default_symbol)
+
+        elif "classBreakInfos"  in layout.keys():
+            target_attr = layout['field']
+            render = qgsRenderer(symbolType="graduatedSymbol", target_attr=target_attr, graduatedMethod="GraduatedColor")
+            classList = []
+            n = 0
+
+            for valueInfo in layout['classBreakInfos']:
+                color =         valueInfo['symbol']['color']
+                outLine_color = valueInfo['symbol']['outline']['color']
+                outLine_width = valueInfo['symbol']['outline']['width']
+                outLine_style = valueInfo['symbol']['outline']['style'].lower().replace("esrisfs","")
+                fillStyle =     valueInfo['symbol']['style'].lower().replace("esrisfs","")
+
+                symbol = qgsSymbol(dtype='fill')
+                symbol.setSimpleFill(color=color, color_border=outLine_color, outline_width=outLine_width,
+                                     style_border=outLine_style, style=fillStyle, unit="Pixel")
+
+                symCat = symbolRange(valueInfo['classMinValue'], valueInfo['classMaxValue'], valueInfo['label'], str(n), symbol)
+                classList.append(symCat)
+                n += 1
+            render.addRangedSymbols(classList)
+
         else:
             return None
 
@@ -228,15 +280,15 @@ class mxd2qgs:
             default_symbol = None
             n = 0
 
-            for uniqueValueInfo in layout['uniqueValueInfos']:
-                color =  uniqueValueInfo['symbol']['color']
-                width = uniqueValueInfo['symbol']['width']
+            for valueInfo in layout['uniqueValueInfos']:
+                color =  valueInfo['symbol']['color']
+                width = valueInfo['symbol']['width']
                 style = "solid"
 
                 symbol = qgsSymbol(dtype='line')
                 symbol.setSimpleLine(color=color, line_width=width, line_style=style, unit="Pixel")
 
-                symCat = symbolCategory(uniqueValueInfo['value'], uniqueValueInfo['label'], str(n), symbol)
+                symCat = symbolCategory(valueInfo['value'], valueInfo['label'], str(n), symbol)
                 categoryList.append(symCat)
                 n += 1
 
@@ -247,22 +299,40 @@ class mxd2qgs:
 
                 default_symbol = qgsSymbol(dtype='line')
                 default_symbol.setSimpleLine(color=color, line_width=width, line_style=style, unit="Pixel")
-
             render.addCategorizedSymbols(categoryList, default_symbol)
+
+        elif "classBreakInfos"  in layout.keys():
+            target_attr = layout['field']
+            render = qgsRenderer(symbolType="graduatedSymbol", target_attr=target_attr, graduatedMethod="GraduatedColor")
+            classList = []
+            n = 0
+
+            for valueInfo in layout['classBreakInfos']:
+                color =  valueInfo['symbol']['color']
+                width = valueInfo['symbol']['width']
+                style = "solid"
+
+                symbol = qgsSymbol(dtype='line')
+                symbol.setSimpleLine(color=color, line_width=width, line_style=style, unit="Pixel")
+
+                symCat = symbolRange(valueInfo['classMinValue'], valueInfo['classMaxValue'], valueInfo['label'], str(n), symbol)
+                classList.append(symCat)
+                n += 1
+            render.addRangedSymbols(classList)
+
         else:
             return None
 
         return render
 
     #-----------private-------------
-    #TODO this only works only for 1 level
-    def _makeLayerTree(self):
-        self.qgsTree = qgsLayerTree()
-        layers = self.prjQgs.layers
-
-        tree = [{"id": k, 'path': v.layerName.split("\\"), "layer": v} for k,v in layers.items()]
-        self._parseTree(tree, self.qgsTree.tree)
-        return self.qgsTree
+    # def _makeLayerTree(self):
+    #     self.qgsTree = qgsLayerTree()
+    #     layers = self.prjQgs.layers
+    #
+    #     tree = [{"id": k, 'path': v.layerName.split("\\"), "layer": v} for k,v in layers.items()]
+    #     self._parseTree(tree, self.qgsTree.tree)
+    #     return self.qgsTree
 
     # def _parseTree(self, pathTree, layerTree):
     #

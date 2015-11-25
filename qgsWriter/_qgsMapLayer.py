@@ -77,23 +77,21 @@ class qgsMapLayer:
            self.renderer = renderer
            return True
 
+        #set default if no randerer provided
         self.renderer = qgsRenderer("singleSymbol")
 
         if self._geom == "Polygon":
             symbol = qgsSymbol(1,"fill")
             symbol.setSimpleFill()
             self.renderer.addSymbol(symbol)
-
         elif self._geom == "Line":
             symbol = qgsSymbol(1,"line")
             symbol.setSimpleLine()
             self.renderer.addSymbol(symbol)
-
         elif self._geom == "Point":
             symbol = qgsSymbol(1,"marker")
             symbol.setSimpleMarker()
             self.renderer.addSymbol(symbol)
-
         return True
 
     def node(self):
