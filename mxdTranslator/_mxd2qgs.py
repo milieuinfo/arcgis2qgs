@@ -69,8 +69,6 @@ class mxd2qgs:
 
             self.prjQgs.addLayer(qgsLyr, checked= arclyr['visible'])
 
-        # tree = self._makeLayerTree()
-        # self.prjQgs.addLayerTree(tree)
         self.prjQgs.save(qgsPath)
 
         if startQgis:
@@ -108,23 +106,28 @@ class mxd2qgs:
             n = 0
 
             for valueInfo in layout['uniqueValueInfos']:
-                color =  valueInfo['symbol']['color']
-                size = valueInfo['symbol']['size']
-
-                outLine_color, outLine_width = ([0,0,0,255], 2)
-                if 'outline' in  valueInfo['symbol'].keys():
-                    outLine_color = valueInfo['symbol']['outline']['color']
-                    outLine_width = valueInfo['symbol']['outline']['width']
-
-                pointStyle =  valueInfo['symbol']['style'].lower().replace("esrisms","")
-                if pointStyle not in qgsSymbol.pointTypeNames:
-                    pointStyle = "pentagon"
-
                 symbol = qgsSymbol(dtype='marker')
-                symbol.setSimpleMarker(color=color, color_border=outLine_color, typeName=pointStyle,
+                if 'symbol' in valueInfo.keys():
+                    color =  valueInfo['symbol']['color']
+                    size = valueInfo['symbol']['size']
+
+                    outLine_color, outLine_width = ([0,0,0,255], 2)
+                    if 'outline' in  valueInfo['symbol'].keys():
+                        outLine_color = valueInfo['symbol']['outline']['color']
+                        outLine_width = valueInfo['symbol']['outline']['width']
+
+                    pointStyle =  valueInfo['symbol']['style'].lower().replace("esrisms","")
+                    if pointStyle not in qgsSymbol.pointTypeNames:
+                        pointStyle = "pentagon"
+
+                    symbol.setSimpleMarker(color=color, color_border=outLine_color, typeName=pointStyle,
                                        outline_width=outLine_width, size=size, unit="Pixel")
 
-                symCat = symbolCategory(valueInfo['value'], valueInfo['label'], str(n), symbol)
+                if 'label' in valueInfo.keys(): #if label left blank, there will be no label key
+                    symCat = symbolCategory(valueInfo['value'], valueInfo['label'], str(n), symbol)
+                else:
+                    symCat = symbolCategory(valueInfo['value'], valueInfo['value'], str(n), symbol)
+
                 categoryList.append(symCat)
                 n += 1
 
@@ -140,10 +143,13 @@ class mxd2qgs:
                 pointStyle =  layout['defaultSymbol']['style'].lower().replace("esrisms","")
                 if pointStyle not in qgsSymbol.pointTypeNames:
                     pointStyle = "pentagon"
+                label = "" if not "defaultLabel" in layout.keys() else layout["defaultLabel"]
 
                 default_symbol = qgsSymbol(dtype='marker')
                 default_symbol.setSimpleMarker(color=color, color_border=outLine_color, typeName=pointStyle,
                                                outline_width=outLine_width, size=size, unit="Pixel")
+                symCat = symbolCategory("", label, str(n+1), default_symbol)
+                categoryList.append(symCat)
 
             render.addCategorizedSymbols(categoryList, default_symbol)
 
@@ -154,25 +160,53 @@ class mxd2qgs:
             n = 0
 
             for valueInfo in layout['classBreakInfos']:
-                color =  valueInfo['symbol']['color']
-                size = valueInfo['symbol']['size']
-
-                outLine_color, outLine_width = ([0,0,0,255], 2)
-                if 'outline' in  valueInfo['symbol'].keys():
-                    outLine_color = valueInfo['symbol']['outline']['color']
-                    outLine_width = valueInfo['symbol']['outline']['width']
-
-                pointStyle =  valueInfo['symbol']['style'].lower().replace("esrisms","")
-                if pointStyle not in qgsSymbol.pointTypeNames:
-                    pointStyle = "pentagon"
-
                 symbol = qgsSymbol(dtype='marker')
-                symbol.setSimpleMarker(color=color, color_border=outLine_color, typeName=pointStyle,
+
+                if 'symbol' in valueInfo.keys():
+                    color =  valueInfo['symbol']['color']
+                    size = valueInfo['symbol']['size']
+
+                    outLine_color, outLine_width = ([0,0,0,255], 2)
+                    if 'outline' in  valueInfo['symbol'].keys():
+                        outLine_color = valueInfo['symbol']['outline']['color']
+                        outLine_width = valueInfo['symbol']['outline']['width']
+
+                    pointStyle =  valueInfo['symbol']['style'].lower().replace("esrisms","")
+                    if pointStyle not in qgsSymbol.pointTypeNames:
+                        pointStyle = "pentagon"
+
+                    symbol.setSimpleMarker(color=color, color_border=outLine_color, typeName=pointStyle,
                                        outline_width=outLine_width, size=size, unit="Pixel")
 
-                symCat = symbolRange(valueInfo['classMinValue'], valueInfo['classMaxValue'], valueInfo['label'], str(n), symbol)
+                if 'label' in valueInfo.keys(): #if label left blank, there will be no label key
+                    symCat = symbolRange(valueInfo['classMinValue'], valueInfo['classMaxValue'], valueInfo['label'], str(n), symbol)
+                else:
+                    label = "{0} - {1}".format(valueInfo['classMinValue'], valueInfo['classMaxValue'])
+                    symCat = symbolRange(valueInfo['classMinValue'], valueInfo['classMaxValue'], label, str(n), symbol)
+
                 classList.append(symCat)
                 n += 1
+
+            if 'defaultSymbol' in layout.keys():
+                color = layout['defaultSymbol']['color']
+                size = layout['defaultSymbol']['size']
+
+                outLine_color, outLine_width = ([0,0,0,255], 2)
+                if 'outline' in  layout['defaultSymbol'].keys():
+                    outLine_color = layout['defaultSymbol']['outline']['color']
+                    outLine_width = layout['defaultSymbol']['outline']['width']
+
+                pointStyle =  layout['defaultSymbol']['style'].lower().replace("esrisms","")
+                if pointStyle not in qgsSymbol.pointTypeNames:
+                    pointStyle = "pentagon"
+                label = "" if not "defaultLabel" in layout.keys() else layout["defaultLabel"]
+
+                default_symbol = qgsSymbol(dtype='marker')
+                default_symbol.setSimpleMarker(color=color, color_border=outLine_color, typeName=pointStyle,
+                                               outline_width=outLine_width, size=size, unit="Pixel")
+                symCat = symbolCategory("", label, str(n+1), default_symbol)
+                classList.append(symCat)
+
             render.addRangedSymbols(classList)
 
         else:
@@ -207,17 +241,23 @@ class mxd2qgs:
             n = 0
 
             for valueInfo in layout['uniqueValueInfos']:
-                color =         valueInfo['symbol']['color']
-                outLine_color = valueInfo['symbol']['outline']['color']
-                outLine_width = valueInfo['symbol']['outline']['width']
-                outLine_style = valueInfo['symbol']['outline']['style'].lower().replace("esrisfs","")
-                fillStyle =     valueInfo['symbol']['style'].lower().replace("esrisfs","")
-
                 symbol = qgsSymbol(dtype='fill')
-                symbol.setSimpleFill(color=color, color_border=outLine_color, outline_width=outLine_width,
+
+                if 'symbol' in valueInfo:
+                    color =         valueInfo['symbol']['color']
+                    outLine_color = valueInfo['symbol']['outline']['color']
+                    outLine_width = valueInfo['symbol']['outline']['width']
+                    outLine_style = valueInfo['symbol']['outline']['style'].lower().replace("esrisfs","")
+                    fillStyle =     valueInfo['symbol']['style'].lower().replace("esrisfs","")
+
+                    symbol.setSimpleFill(color=color, color_border=outLine_color, outline_width=outLine_width,
                                      style_border=outLine_style, style=fillStyle, unit="Pixel")
 
-                symCat = symbolCategory(valueInfo['value'], valueInfo['label'], str(n), symbol)
+                if 'label' in valueInfo.keys(): #if label left blank, there will be no label key
+                    symCat = symbolCategory(valueInfo['value'], valueInfo['label'], str(n), symbol)
+                else:
+                    symCat = symbolCategory(valueInfo['value'], valueInfo['value'], str(n), symbol)
+
                 categoryList.append(symCat)
                 n += 1
 
@@ -227,10 +267,13 @@ class mxd2qgs:
                 outLine_width = layout['defaultSymbol']['outline']['width']
                 outLine_style = layout['defaultSymbol']['outline']['style'].lower().replace("esrisfs","")
                 fillStyle =     layout['defaultSymbol']['style'].lower().replace("esrisfs","")
+                label = "" if not "defaultLabel" in layout.keys() else layout["defaultLabel"]
 
                 default_symbol = qgsSymbol(dtype='fill')
                 default_symbol.setSimpleFill(color=color, color_border=outLine_color, outline_width=outLine_width,
                                              style_border=outLine_style, style=fillStyle, unit="Pixel")
+                symCat = symbolCategory("", label, str(n+1), default_symbol)
+                categoryList.append(symCat)
 
             render.addCategorizedSymbols(categoryList, default_symbol)
 
@@ -241,19 +284,41 @@ class mxd2qgs:
             n = 0
 
             for valueInfo in layout['classBreakInfos']:
-                color =         valueInfo['symbol']['color']
-                outLine_color = valueInfo['symbol']['outline']['color']
-                outLine_width = valueInfo['symbol']['outline']['width']
-                outLine_style = valueInfo['symbol']['outline']['style'].lower().replace("esrisfs","")
-                fillStyle =     valueInfo['symbol']['style'].lower().replace("esrisfs","")
-
                 symbol = qgsSymbol(dtype='fill')
-                symbol.setSimpleFill(color=color, color_border=outLine_color, outline_width=outLine_width,
+                if 'symbol' in valueInfo.keys():
+                    color =         valueInfo['symbol']['color']
+                    outLine_color = valueInfo['symbol']['outline']['color']
+                    outLine_width = valueInfo['symbol']['outline']['width']
+                    outLine_style = valueInfo['symbol']['outline']['style'].lower().replace("esrisfs","")
+                    fillStyle =     valueInfo['symbol']['style'].lower().replace("esrisfs","")
+
+                    symbol.setSimpleFill(color=color, color_border=outLine_color, outline_width=outLine_width,
                                      style_border=outLine_style, style=fillStyle, unit="Pixel")
 
-                symCat = symbolRange(valueInfo['classMinValue'], valueInfo['classMaxValue'], valueInfo['label'], str(n), symbol)
+                if 'label' in valueInfo.keys():
+                    symCat = symbolRange(valueInfo['classMinValue'], valueInfo['classMaxValue'],
+                                         valueInfo['label'], str(n), symbol)
+                else:
+                    label = "{0} - {1}".format(valueInfo['classMinValue'], valueInfo['classMaxValue'])
+                    symCat = symbolRange(valueInfo['classMinValue'], valueInfo['classMaxValue'], label, str(n), symbol)
+
                 classList.append(symCat)
                 n += 1
+
+            if 'defaultSymbol' in layout.keys():
+                color =         layout['defaultSymbol']['color']
+                outLine_color = layout['defaultSymbol']['outline']['color']
+                outLine_width = layout['defaultSymbol']['outline']['width']
+                outLine_style = layout['defaultSymbol']['outline']['style'].lower().replace("esrisfs","")
+                fillStyle =     layout['defaultSymbol']['style'].lower().replace("esrisfs","")
+                label = "" if not "defaultLabel" in layout.keys() else layout["defaultLabel"]
+
+                default_symbol = qgsSymbol(dtype='fill')
+                default_symbol.setSimpleFill(color=color, color_border=outLine_color, outline_width=outLine_width,
+                                             style_border=outLine_style, style=fillStyle, unit="Pixel")
+                symCat = symbolCategory("", label, str(n+1), default_symbol)
+                classList.append(symCat)
+
             render.addRangedSymbols(classList)
 
         else:
@@ -281,14 +346,19 @@ class mxd2qgs:
             n = 0
 
             for valueInfo in layout['uniqueValueInfos']:
-                color =  valueInfo['symbol']['color']
-                width = valueInfo['symbol']['width']
-                style = "solid"
-
                 symbol = qgsSymbol(dtype='line')
-                symbol.setSimpleLine(color=color, line_width=width, line_style=style, unit="Pixel")
+                if 'symbol' in valueInfo.keys():
+                    color =  valueInfo['symbol']['color']
+                    width = valueInfo['symbol']['width']
+                    style = "solid"
 
-                symCat = symbolCategory(valueInfo['value'], valueInfo['label'], str(n), symbol)
+                    symbol.setSimpleLine(color=color, line_width=width, line_style=style, unit="Pixel")
+
+                if 'label' in valueInfo.keys():
+                    symCat = symbolCategory(valueInfo['value'], valueInfo['label'], str(n), symbol)
+                else:
+                    symCat = symbolCategory(valueInfo['value'], valueInfo['value'], str(n), symbol)
+
                 categoryList.append(symCat)
                 n += 1
 
@@ -296,9 +366,13 @@ class mxd2qgs:
                 color =  layout['defaultSymbol']['color']
                 width = layout['defaultSymbol']['width']
                 style = "solid"
+                label = "" if not "defaultLabel" in layout.keys() else layout["defaultLabel"]
 
                 default_symbol = qgsSymbol(dtype='line')
                 default_symbol.setSimpleLine(color=color, line_width=width, line_style=style, unit="Pixel")
+                symCat = symbolCategory("", label, str(n+1), default_symbol)
+                categoryList.append(symCat)
+
             render.addCategorizedSymbols(categoryList, default_symbol)
 
         elif "classBreakInfos"  in layout.keys():
@@ -308,16 +382,36 @@ class mxd2qgs:
             n = 0
 
             for valueInfo in layout['classBreakInfos']:
-                color =  valueInfo['symbol']['color']
-                width = valueInfo['symbol']['width']
-                style = "solid"
-
                 symbol = qgsSymbol(dtype='line')
-                symbol.setSimpleLine(color=color, line_width=width, line_style=style, unit="Pixel")
+                if 'symbol' in valueInfo.keys():
+                    color =  valueInfo['symbol']['color']
+                    width = valueInfo['symbol']['width']
+                    style = "solid"
 
-                symCat = symbolRange(valueInfo['classMinValue'], valueInfo['classMaxValue'], valueInfo['label'], str(n), symbol)
+                    symbol.setSimpleLine(color=color, line_width=width, line_style=style, unit="Pixel")
+
+                if 'label' in valueInfo.keys():
+                    symCat = symbolRange(valueInfo['classMinValue'], valueInfo['classMaxValue'],
+                                         valueInfo['label'], str(n), symbol)
+                else:
+                    label = "{0} - {1}".format(valueInfo['classMinValue'], valueInfo['classMaxValue'])
+                    symCat = symbolRange(valueInfo['classMinValue'], valueInfo['classMaxValue'], label, str(n), symbol)
+
                 classList.append(symCat)
                 n += 1
+
+            if 'defaultSymbol' in layout.keys():
+                color =  layout['defaultSymbol']['color']
+                width = layout['defaultSymbol']['width']
+                style = "solid"
+                label = "" if not "defaultLabel" in layout.keys() else layout["defaultLabel"]
+
+                default_symbol = qgsSymbol(dtype='line')
+                default_symbol.setSimpleLine(color=color, line_width=width, line_style=style, unit="Pixel")
+                symCat = symbolCategory("", label, str(n+1), default_symbol)
+                classList.append(symCat)
+
+
             render.addRangedSymbols(classList)
 
         else:

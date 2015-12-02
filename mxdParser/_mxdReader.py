@@ -48,9 +48,10 @@ class mxdReader:
             layer["visible"] = lyr.visible
 
             if lyr.isFeatureLayer:
+                if not arcpy.Exists( lyr.dataSource ): continue
+
                 layer["type"] = "vector"
                 layer['definitionQuery'] = lyr.definitionQuery
-
                 if lyr.dataSource.endswith(".shp"): layer["path"] = lyr.dataSource
                 else: layer["path"] = os.path.join( lyr.workspacePath, lyr.datasetName)
 
@@ -62,6 +63,7 @@ class mxdReader:
                 #  u'type': u'simple'},
                 #  u'transparency': 0}
                 layer['layout'] = symbols
+
                 ds = arcpy.Describe( lyr.dataSource )
 
                 if "point" in ds.ShapeType.lower(): layer['geomType'] = "Point"
@@ -85,6 +87,3 @@ class mxdReader:
                 break
 
             self.layers.append(layer)
-
-    def _layers2json(self):
-        pass

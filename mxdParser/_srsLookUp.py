@@ -2,7 +2,7 @@ import os, sys, urllib2
 
 
 class srsLookUp:
-    def __init__(self, timeout=15, proxyHost="", port="", proxyUser=None, proxyPass=None):
+    def __init__(self, timeout=5, proxyHost="", port="", proxyUser=None, proxyPass=None):
         "find SRS params using http://epsg.io/"
         self.timeout = timeout
         self.Url = "http://epsg.io/"
@@ -31,6 +31,9 @@ class srsLookUp:
                 result = urllib2.urlopen(link, timeout=self.timeout)
         except urllib2.URLError as er:
             print( "Could not find proj4 because: " + er.reason )
+            return None
+        except:
+            print( "Could not find proj4 because: " + str( sys.exc_info() ) )
             return None
 
         if 'text/html' in result.info().getheader("Content-Type"):
