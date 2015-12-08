@@ -41,6 +41,8 @@ class mxdReader:
 
     def _layersInfo(self):
         lyrs = arcpy.mapping.ListLayers(self.df)
+        flatWMSProps = self._flattenWMS(lyrs)
+        urls = []
 
         for lyr in lyrs:
             layer = {}
@@ -56,12 +58,6 @@ class mxdReader:
                 else: layer["path"] = os.path.join( lyr.workspacePath, lyr.datasetName)
 
                 symbols = json.loads( lyr._arc_object.getsymbology() )
-                # example of the symbology json-like dict:
-                # { u'renderer': {
-                #     u'symbol': {u'color': [0, 166, 116, 255], u'style': u'esriSMSCircle', u'type': u'esriSMS',
-                #     u'outline': {u'color': [0, 0, 0, 255], u'width': 1.0}, u'size': 4.0},
-                #  u'type': u'simple'},
-                #  u'transparency': 0}
                 layer['layout'] = symbols
 
                 ds = arcpy.Describe( lyr.dataSource )
@@ -74,20 +70,51 @@ class mxdReader:
                 if lyr.showLabels and len(lyr.labelClasses):
                     labelClass = lyr.labelClasses[0]
                     layer["labelExpression"] = labelClass.expression
+                if lyr.definitionQuery:
+                    layer["definitionQuery"] = lyr.definitionQuery
 
             #TODO: symbology for rasters, put group layer in a group:
             elif lyr.isGroupLayer:
                 layer["type"] = "group"
-                layer["childeren"] = [n.longName for n in arcpy.mapping.ListLayers(lyr)][1:]
+                layer["childeren"] = [n.longName for n in arcpy.mapping.ListLayers(lyr)
+                                                                    if not n.isServiceLayer ][1:]
 
             elif lyr.isRasterLayer:
                 layer["type"] = "raster"
                 layer["path"] = lyr.dataSource
-            elif lyr.isServiceLayer:
-                layer["type"] = "service"
-                layer['serviceProperties'] = lyr.serviceProperties
+
+            elif lyr.isServiceLayer and not lyr.isGroupLayer:
+                URL =  lyr.serviceProperties['URL']
+                if URL in urls: continue
+                else: urls.append (URL)
+
+                wmsProps = [wms for wms in flatWMSProps if URL == wms['URL'] ]
+                if len(wmsProps):
+                    layer['type'] = "service"
+                    layer['serviceProperties'] = wmsProps[0]
             else:
                 break
 
-
             self.layers.append(layer)
+
+    def _flattenWMS(self, lyrs):
+        URLs = []
+        mergeLyrsProps = []
+
+        for wmsLyr in lyrs:
+            if not wmsLyr.isServiceLayer: continue
+            if wmsLyr.isGroupLayer : continue
+            if not wmsLyr.visible : continue
+
+            if wmsLyr.serviceProperties['URL'] in URLs and len(mergeLyrsProps):
+                mergeLyrsProps[-1]['Name'] = mergeLyrsProps[-1]['Name'] +','+ wmsLyr.serviceProperties['Name']
+            else:
+                URLs.append( wmsLyr.serviceProperties['URL'] )
+                mergeLyrsProps.append( wmsLyr.serviceProperties )
+
+        return  mergeLyrsProps
+
+
+    def __del__(self):
+        del self.mxd
+        del self.df

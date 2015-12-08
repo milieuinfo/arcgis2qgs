@@ -4,6 +4,7 @@ from qgsWriter import *
 from _polygonTranslator import polygonTranslator
 from _polylineTranslator import polylineTranslator
 from _pointTranslator import pointTranslator
+from xml.sax.saxutils import escape
 
 class mxd2qgs:
     def __init__(self):
@@ -29,9 +30,8 @@ class mxd2qgs:
             lyrSrs = self.prjSrs   #TODO -> find out lyr srs if not same as map crs
             dataType =  arclyr["type"]
 
-            if dataType not in ["vector", "raster"]: continue # other types are not supported yet
+            if dataType not in ["vector", "raster", "service"]: continue # other types are not supported yet
 
-            dataPath = arclyr["path"]
             dataName = arclyr["name"]
 
             datageomType = arclyr["geomType"] if dataType == "vector" else None
@@ -40,6 +40,7 @@ class mxd2qgs:
             qgsLyr.layerTitle = dataName
 
             if dataType == "vector":
+               dataPath = arclyr["path"]
                 #TODO def query
                if dataPath.endswith(".shp"):
                   qgsLyr.setDatasource(dataPath, None, provider="ogr" )
@@ -68,7 +69,20 @@ class mxd2qgs:
                    }
 
             elif dataType == "raster":
+                dataPath = arclyr["path"]
                 qgsLyr.setDatasource(dataPath, None, provider="gdal" )
+
+            elif dataType == "service":
+                if not 'serviceProperties' in arclyr.keys(): continue
+                if arclyr['serviceProperties']['ServiceType'].upper() != 'WMS' : continue
+
+                url = arclyr['serviceProperties']['URL'].split("?")[0]
+                layerName = arclyr['serviceProperties']['Name']
+                style = ""
+                crs = self.mxd.crsCode
+
+                wmsUri = escape( "dpiMode=7&url=%s&layers=%s&format=image/png&styles=%s&crs=EPSG:%s" % (url, layerName, style, crs) )
+                qgsLyr.setDatasource(wmsUri, None, provider="wms" )
 
             self.prjQgs.addLayer(qgsLyr, checked= arclyr['visible'])
 

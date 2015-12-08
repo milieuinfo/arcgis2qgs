@@ -14,7 +14,7 @@ class qgsMapLayer:
         :param srs: a qgsWriter.qgsSrs object of the map crs, if Not set it will default to WGS84
         """
         geomTypes = ["Polygon","Point","Line"]
-        dataTypes = ["vector", "raster"]
+        dataTypes = ["vector", "raster","service"]
         #valdiation
         if  dataType not in dataTypes:
             raise Exception(
@@ -29,7 +29,7 @@ class qgsMapLayer:
         self.layerTitle  = ""
         self.abstract = ""
         self.keywords = []
-        self.layerID = name + datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+        self.layerID = name.replace("//","").replace(" ", '_') + datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         self.minimumScale = 0
         self.maximumScale = 10**8
         self.minLabelScale = 0
