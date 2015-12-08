@@ -1,6 +1,9 @@
 from mxdParser import *
 from utils import run_in_other_thread
 from qgsWriter import *
+from _polygonTranslator import polygonTranslator
+from _polylineTranslator import polylineTranslator
+from _pointTranslator import pointTranslator
 
 class mxd2qgs:
     def __init__(self):
@@ -26,7 +29,7 @@ class mxd2qgs:
             lyrSrs = self.prjSrs   #TODO -> find out lyr srs if not same as map crs
             dataType =  arclyr["type"]
 
-            if dataType not in [ "vector", "raster" ]: continue #other types are not supported yet
+            if dataType not in ["vector", "raster"]: continue # other types are not supported yet
 
             dataPath = arclyr["path"]
             dataName = arclyr["name"]
@@ -48,11 +51,11 @@ class mxd2qgs:
                render = None
 
                if datageomType == 'Line':
-                   render = self.getLineRender(layout)
+                   render = polylineTranslator.getLineRender(layout)
                elif datageomType == 'Polygon':
-                   render = self.getPolygonRender(layout)
+                   render = polygonTranslator.getPolygonRender(layout)
                elif datageomType == 'Point':
-                   render =  self.getPointRender(layout)
+                   render =  pointTranslator.getPointRender(layout)
 
                if render: qgsLyr.setRenderer( render )
 
@@ -75,349 +78,19 @@ class mxd2qgs:
            startfile = run_in_other_thread(os.startfile)
            startfile(qgsPath)
 
-    def getPointRender(self, layout):
-        render = None
 
-        if 'symbol' in layout.keys():
-            color = layout['symbol']['color']
-            size = layout['symbol']['size']
 
-            outLine_color, outLine_width = ([0,0,0,255], 2)
-            if 'outline' in  layout['symbol'].keys():
-                outLine_color = layout['symbol']['outline']['color']
-                outLine_width = layout['symbol']['outline']['width']
 
-            pointStyle =  layout['symbol']['style'].lower().replace("esrisms","")
-            if pointStyle not in qgsSymbol.pointTypeNames:
-                pointStyle = "pentagon"
 
-            render = qgsRenderer(symbolType="singleSymbol")
 
-            symbol = qgsSymbol(dtype='marker')
-            symbol.setSimpleMarker(color=color, color_border=outLine_color, typeName=pointStyle,
-                                   outline_width=outLine_width, size=size, unit="Pixel")
-            render.addSymbol(symbol)
 
-        elif "uniqueValueInfos" in layout.keys():
-            target_attr = layout['field1']
-            render = qgsRenderer(symbolType="categorizedSymbol", target_attr=target_attr)
-            categoryList = []
-            default_symbol = None
-            n = 0
 
-            for valueInfo in layout['uniqueValueInfos']:
-                symbol = qgsSymbol(dtype='marker')
-                if 'symbol' in valueInfo.keys():
-                    color =  valueInfo['symbol']['color']
-                    size = valueInfo['symbol']['size']
 
-                    outLine_color, outLine_width = ([0,0,0,255], 2)
-                    if 'outline' in  valueInfo['symbol'].keys():
-                        outLine_color = valueInfo['symbol']['outline']['color']
-                        outLine_width = valueInfo['symbol']['outline']['width']
 
-                    pointStyle =  valueInfo['symbol']['style'].lower().replace("esrisms","")
-                    if pointStyle not in qgsSymbol.pointTypeNames:
-                        pointStyle = "pentagon"
 
-                    symbol.setSimpleMarker(color=color, color_border=outLine_color, typeName=pointStyle,
-                                       outline_width=outLine_width, size=size, unit="Pixel")
 
-                if 'label' in valueInfo.keys(): #if label left blank, there will be no label key
-                    symCat = symbolCategory(valueInfo['value'], valueInfo['label'], str(n), symbol)
-                else:
-                    symCat = symbolCategory(valueInfo['value'], valueInfo['value'], str(n), symbol)
 
-                categoryList.append(symCat)
-                n += 1
 
-            if 'defaultSymbol' in layout.keys():
-                color = layout['defaultSymbol']['color']
-                size = layout['defaultSymbol']['size']
-
-                outLine_color, outLine_width = ([0,0,0,255], 2)
-                if 'outline' in  layout['defaultSymbol'].keys():
-                    outLine_color = layout['defaultSymbol']['outline']['color']
-                    outLine_width = layout['defaultSymbol']['outline']['width']
-
-                pointStyle =  layout['defaultSymbol']['style'].lower().replace("esrisms","")
-                if pointStyle not in qgsSymbol.pointTypeNames:
-                    pointStyle = "pentagon"
-                label = "" if not "defaultLabel" in layout.keys() else layout["defaultLabel"]
-
-                default_symbol = qgsSymbol(dtype='marker')
-                default_symbol.setSimpleMarker(color=color, color_border=outLine_color, typeName=pointStyle,
-                                               outline_width=outLine_width, size=size, unit="Pixel")
-                symCat = symbolCategory("", label, str(n+1), default_symbol)
-                categoryList.append(symCat)
-
-            render.addCategorizedSymbols(categoryList, default_symbol)
-
-        elif "classBreakInfos"  in layout.keys():
-            target_attr = layout['field']
-            render = qgsRenderer(symbolType="graduatedSymbol", target_attr=target_attr, graduatedMethod="GraduatedColor")
-            classList = []
-            n = 0
-
-            for valueInfo in layout['classBreakInfos']:
-                symbol = qgsSymbol(dtype='marker')
-
-                if 'symbol' in valueInfo.keys():
-                    color =  valueInfo['symbol']['color']
-                    size = valueInfo['symbol']['size']
-
-                    outLine_color, outLine_width = ([0,0,0,255], 2)
-                    if 'outline' in  valueInfo['symbol'].keys():
-                        outLine_color = valueInfo['symbol']['outline']['color']
-                        outLine_width = valueInfo['symbol']['outline']['width']
-
-                    pointStyle =  valueInfo['symbol']['style'].lower().replace("esrisms","")
-                    if pointStyle not in qgsSymbol.pointTypeNames:
-                        pointStyle = "pentagon"
-
-                    symbol.setSimpleMarker(color=color, color_border=outLine_color, typeName=pointStyle,
-                                       outline_width=outLine_width, size=size, unit="Pixel")
-
-                if 'label' in valueInfo.keys(): #if label left blank, there will be no label key
-                    symCat = symbolRange(valueInfo['classMinValue'], valueInfo['classMaxValue'], valueInfo['label'], str(n), symbol)
-                else:
-                    label = "{0} - {1}".format(valueInfo['classMinValue'], valueInfo['classMaxValue'])
-                    symCat = symbolRange(valueInfo['classMinValue'], valueInfo['classMaxValue'], label, str(n), symbol)
-
-                classList.append(symCat)
-                n += 1
-
-            if 'defaultSymbol' in layout.keys():
-                color = layout['defaultSymbol']['color']
-                size = layout['defaultSymbol']['size']
-
-                outLine_color, outLine_width = ([0,0,0,255], 2)
-                if 'outline' in  layout['defaultSymbol'].keys():
-                    outLine_color = layout['defaultSymbol']['outline']['color']
-                    outLine_width = layout['defaultSymbol']['outline']['width']
-
-                pointStyle =  layout['defaultSymbol']['style'].lower().replace("esrisms","")
-                if pointStyle not in qgsSymbol.pointTypeNames:
-                    pointStyle = "pentagon"
-                label = "" if not "defaultLabel" in layout.keys() else layout["defaultLabel"]
-
-                default_symbol = qgsSymbol(dtype='marker')
-                default_symbol.setSimpleMarker(color=color, color_border=outLine_color, typeName=pointStyle,
-                                               outline_width=outLine_width, size=size, unit="Pixel")
-                symCat = symbolCategory("", label, str(n+1), default_symbol)
-                classList.append(symCat)
-
-            render.addRangedSymbols(classList)
-
-        else:
-            return None
-
-        return render
-
-    def getPolygonRender(self, layout):
-        render = None
-
-        if 'symbol' in layout.keys():
-            color =  layout['symbol']['color']
-
-            outLine_color = layout['symbol']['outline']['color']
-            outLine_width = layout['symbol']['outline']['width']
-            outLine_style = layout['symbol']['outline']['style'].lower().replace("esrisfs","")
-
-            fillStyle = layout['symbol']['style'].lower().replace("esrisfs","")
-
-            render = qgsRenderer(symbolType="singleSymbol")
-
-            symbol = qgsSymbol(dtype='fill')
-            symbol.setSimpleFill(color=color, color_border=outLine_color, outline_width=outLine_width,
-                                 style_border=outLine_style, style=fillStyle, unit="Pixel")
-            render.addSymbol(symbol)
-
-        elif "uniqueValueInfos" in layout.keys():
-            target_attr = layout['field1']
-            render = qgsRenderer(symbolType="categorizedSymbol", target_attr=target_attr)
-            categoryList = []
-            default_symbol = None
-            n = 0
-
-            for valueInfo in layout['uniqueValueInfos']:
-                symbol = qgsSymbol(dtype='fill')
-
-                if 'symbol' in valueInfo:
-                    color =         valueInfo['symbol']['color']
-                    outLine_color = valueInfo['symbol']['outline']['color']
-                    outLine_width = valueInfo['symbol']['outline']['width']
-                    outLine_style = valueInfo['symbol']['outline']['style'].lower().replace("esrisfs","")
-                    fillStyle =     valueInfo['symbol']['style'].lower().replace("esrisfs","")
-
-                    symbol.setSimpleFill(color=color, color_border=outLine_color, outline_width=outLine_width,
-                                     style_border=outLine_style, style=fillStyle, unit="Pixel")
-
-                if 'label' in valueInfo.keys(): #if label left blank, there will be no label key
-                    symCat = symbolCategory(valueInfo['value'], valueInfo['label'], str(n), symbol)
-                else:
-                    symCat = symbolCategory(valueInfo['value'], valueInfo['value'], str(n), symbol)
-
-                categoryList.append(symCat)
-                n += 1
-
-            if 'defaultSymbol' in layout.keys():
-                color =         layout['defaultSymbol']['color']
-                outLine_color = layout['defaultSymbol']['outline']['color']
-                outLine_width = layout['defaultSymbol']['outline']['width']
-                outLine_style = layout['defaultSymbol']['outline']['style'].lower().replace("esrisfs","")
-                fillStyle =     layout['defaultSymbol']['style'].lower().replace("esrisfs","")
-                label = "" if not "defaultLabel" in layout.keys() else layout["defaultLabel"]
-
-                default_symbol = qgsSymbol(dtype='fill')
-                default_symbol.setSimpleFill(color=color, color_border=outLine_color, outline_width=outLine_width,
-                                             style_border=outLine_style, style=fillStyle, unit="Pixel")
-                symCat = symbolCategory("", label, str(n+1), default_symbol)
-                categoryList.append(symCat)
-
-            render.addCategorizedSymbols(categoryList, default_symbol)
-
-        elif "classBreakInfos"  in layout.keys():
-            target_attr = layout['field']
-            render = qgsRenderer(symbolType="graduatedSymbol", target_attr=target_attr, graduatedMethod="GraduatedColor")
-            classList = []
-            n = 0
-
-            for valueInfo in layout['classBreakInfos']:
-                symbol = qgsSymbol(dtype='fill')
-                if 'symbol' in valueInfo.keys():
-                    color =         valueInfo['symbol']['color']
-                    outLine_color = valueInfo['symbol']['outline']['color']
-                    outLine_width = valueInfo['symbol']['outline']['width']
-                    outLine_style = valueInfo['symbol']['outline']['style'].lower().replace("esrisfs","")
-                    fillStyle =     valueInfo['symbol']['style'].lower().replace("esrisfs","")
-
-                    symbol.setSimpleFill(color=color, color_border=outLine_color, outline_width=outLine_width,
-                                     style_border=outLine_style, style=fillStyle, unit="Pixel")
-
-                if 'label' in valueInfo.keys():
-                    symCat = symbolRange(valueInfo['classMinValue'], valueInfo['classMaxValue'],
-                                         valueInfo['label'], str(n), symbol)
-                else:
-                    label = "{0} - {1}".format(valueInfo['classMinValue'], valueInfo['classMaxValue'])
-                    symCat = symbolRange(valueInfo['classMinValue'], valueInfo['classMaxValue'], label, str(n), symbol)
-
-                classList.append(symCat)
-                n += 1
-
-            if 'defaultSymbol' in layout.keys():
-                color =         layout['defaultSymbol']['color']
-                outLine_color = layout['defaultSymbol']['outline']['color']
-                outLine_width = layout['defaultSymbol']['outline']['width']
-                outLine_style = layout['defaultSymbol']['outline']['style'].lower().replace("esrisfs","")
-                fillStyle =     layout['defaultSymbol']['style'].lower().replace("esrisfs","")
-                label = "" if not "defaultLabel" in layout.keys() else layout["defaultLabel"]
-
-                default_symbol = qgsSymbol(dtype='fill')
-                default_symbol.setSimpleFill(color=color, color_border=outLine_color, outline_width=outLine_width,
-                                             style_border=outLine_style, style=fillStyle, unit="Pixel")
-                symCat = symbolCategory("", label, str(n+1), default_symbol)
-                classList.append(symCat)
-
-            render.addRangedSymbols(classList)
-
-        else:
-            return None
-
-        return render
-
-    def getLineRender(self, layout):
-        if 'symbol' in layout.keys():
-            color =  layout['symbol']['color']
-            width = layout['symbol']['width']
-            style = "solid"
-
-            render = qgsRenderer(symbolType="singleSymbol")
-
-            symbol = qgsSymbol(dtype='line')
-            symbol.setSimpleLine(color=color, line_width=width, line_style=style, unit="Pixel")
-            render.addSymbol(symbol)
-
-        elif "uniqueValueInfos" in layout.keys():
-            target_attr = layout['field1']
-            render = qgsRenderer(symbolType="categorizedSymbol", target_attr=target_attr)
-            categoryList = []
-            default_symbol = None
-            n = 0
-
-            for valueInfo in layout['uniqueValueInfos']:
-                symbol = qgsSymbol(dtype='line')
-                if 'symbol' in valueInfo.keys():
-                    color =  valueInfo['symbol']['color']
-                    width = valueInfo['symbol']['width']
-                    style = "solid"
-
-                    symbol.setSimpleLine(color=color, line_width=width, line_style=style, unit="Pixel")
-
-                if 'label' in valueInfo.keys():
-                    symCat = symbolCategory(valueInfo['value'], valueInfo['label'], str(n), symbol)
-                else:
-                    symCat = symbolCategory(valueInfo['value'], valueInfo['value'], str(n), symbol)
-
-                categoryList.append(symCat)
-                n += 1
-
-            if 'defaultSymbol' in layout.keys():
-                color =  layout['defaultSymbol']['color']
-                width = layout['defaultSymbol']['width']
-                style = "solid"
-                label = "" if not "defaultLabel" in layout.keys() else layout["defaultLabel"]
-
-                default_symbol = qgsSymbol(dtype='line')
-                default_symbol.setSimpleLine(color=color, line_width=width, line_style=style, unit="Pixel")
-                symCat = symbolCategory("", label, str(n+1), default_symbol)
-                categoryList.append(symCat)
-
-            render.addCategorizedSymbols(categoryList, default_symbol)
-
-        elif "classBreakInfos"  in layout.keys():
-            target_attr = layout['field']
-            render = qgsRenderer(symbolType="graduatedSymbol", target_attr=target_attr, graduatedMethod="GraduatedColor")
-            classList = []
-            n = 0
-
-            for valueInfo in layout['classBreakInfos']:
-                symbol = qgsSymbol(dtype='line')
-                if 'symbol' in valueInfo.keys():
-                    color =  valueInfo['symbol']['color']
-                    width = valueInfo['symbol']['width']
-                    style = "solid"
-
-                    symbol.setSimpleLine(color=color, line_width=width, line_style=style, unit="Pixel")
-
-                if 'label' in valueInfo.keys():
-                    symCat = symbolRange(valueInfo['classMinValue'], valueInfo['classMaxValue'],
-                                         valueInfo['label'], str(n), symbol)
-                else:
-                    label = "{0} - {1}".format(valueInfo['classMinValue'], valueInfo['classMaxValue'])
-                    symCat = symbolRange(valueInfo['classMinValue'], valueInfo['classMaxValue'], label, str(n), symbol)
-
-                classList.append(symCat)
-                n += 1
-
-            if 'defaultSymbol' in layout.keys():
-                color =  layout['defaultSymbol']['color']
-                width = layout['defaultSymbol']['width']
-                style = "solid"
-                label = "" if not "defaultLabel" in layout.keys() else layout["defaultLabel"]
-
-                default_symbol = qgsSymbol(dtype='line')
-                default_symbol.setSimpleLine(color=color, line_width=width, line_style=style, unit="Pixel")
-                symCat = symbolCategory("", label, str(n+1), default_symbol)
-                classList.append(symCat)
-
-
-            render.addRangedSymbols(classList)
-
-        else:
-            return None
-
-        return render
 
     #-----------private-------------
     # def _makeLayerTree(self):

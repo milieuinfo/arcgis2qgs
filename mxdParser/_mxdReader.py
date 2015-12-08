@@ -83,7 +83,11 @@ class mxdReader:
             elif lyr.isRasterLayer:
                 layer["type"] = "raster"
                 layer["path"] = lyr.dataSource
+            elif lyr.isServiceLayer:
+                layer["type"] = "service"
+                layer['serviceProperties'] = lyr.serviceProperties
             else:
                 break
+
 
             self.layers.append(layer)
