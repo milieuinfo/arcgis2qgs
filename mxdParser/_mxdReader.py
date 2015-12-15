@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import sys, os, arcpy, json
+import os, arcpy, json
 from _srsLookUp import srsLookUp
 
 class mxdReader:
@@ -41,13 +41,11 @@ class mxdReader:
 
     def _layersInfo(self):
         lyrs = arcpy.mapping.ListLayers(self.df)
-        flatWMSProps = self._flattenWMS(lyrs)
+        flatWMSProps = self.flattenWMS(lyrs)
         urls = []
 
         for lyr in lyrs:
-            layer = {}
-            layer["name"] = lyr.longName
-            layer["visible"] = lyr.visible
+            layer = {"name": lyr.longName, "visible": lyr.visible}
 
             if lyr.isFeatureLayer:
                 if not arcpy.Exists( lyr.dataSource ): continue
@@ -77,7 +75,7 @@ class mxdReader:
             elif lyr.isGroupLayer:
                 layer["type"] = "group"
                 layer["childeren"] = [n.longName for n in arcpy.mapping.ListLayers(lyr)
-                                                                    if not n.isServiceLayer ][1:]
+                                                                 if not n.isServiceLayer ][1:]
 
             elif lyr.isRasterLayer:
                 layer["type"] = "raster"
@@ -91,13 +89,15 @@ class mxdReader:
                 wmsProps = [wms for wms in flatWMSProps if URL == wms['URL'] ]
                 if len(wmsProps):
                     layer['type'] = "service"
+                    layer['visible'] = True
                     layer['serviceProperties'] = wmsProps[0]
             else:
                 break
 
             self.layers.append(layer)
 
-    def _flattenWMS(self, lyrs):
+    @staticmethod
+    def flattenWMS(lyrs):
         URLs = []
         mergeLyrsProps = []
 
@@ -107,13 +107,13 @@ class mxdReader:
             if not wmsLyr.visible : continue
 
             if wmsLyr.serviceProperties['URL'] in URLs and len(mergeLyrsProps):
-                mergeLyrsProps[-1]['Name'] = mergeLyrsProps[-1]['Name'] +','+ wmsLyr.serviceProperties['Name']
+                mergeLyrsProps[-1]['Names'].append( wmsLyr.serviceProperties['Name'] )
             else:
                 URLs.append( wmsLyr.serviceProperties['URL'] )
-                mergeLyrsProps.append( wmsLyr.serviceProperties )
-
+                props = wmsLyr.serviceProperties
+                props['Names'] = [wmsLyr.serviceProperties['Name']]
+                mergeLyrsProps.append( props )
         return  mergeLyrsProps
-
 
     def __del__(self):
         del self.mxd

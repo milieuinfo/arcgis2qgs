@@ -4,7 +4,7 @@ from qgsWriter import *
 from _polygonTranslator import polygonTranslator
 from _polylineTranslator import polylineTranslator
 from _pointTranslator import pointTranslator
-from xml.sax.saxutils import escape
+from _wmsTransLator import wmsTransLator
 
 class mxd2qgs:
     def __init__(self):
@@ -28,7 +28,11 @@ class mxd2qgs:
 
         for arclyr in  self.mxd.layers:
             lyrSrs = self.prjSrs   #TODO -> find out lyr srs if not same as map crs
-            dataType =  arclyr["type"]
+
+            if 'serviceProperties' in arclyr.keys() and arclyr['serviceProperties']['ServiceType'] == 'WMS':
+                dataType = 'raster' #WMS is raster in QGIS
+            else:
+                dataType =  arclyr["type"]
 
             if dataType not in ["vector", "raster", "service"]: continue # other types are not supported yet
 
@@ -39,7 +43,7 @@ class mxd2qgs:
             qgsLyr = qgsMapLayer(dataName, dataType, datageomType, lyrSrs, visible= arclyr['visible'])
             qgsLyr.layerTitle = dataName
 
-            if dataType == "vector":
+            if arclyr["type"] == "vector":
                dataPath = arclyr["path"]
                 #TODO def query
                if dataPath.endswith(".shp"):
@@ -65,23 +69,21 @@ class mxd2qgs:
                    qgsLyr.customproperties = {
                        "labeling": "pal",
                        "labeling/enabled":"true",
-                       "labeling/fieldName": expr
-                   }
+                       "labeling/fieldName": expr   }
 
-            elif dataType == "raster":
+            elif arclyr["type"] == "raster":
                 dataPath = arclyr["path"]
                 qgsLyr.setDatasource(dataPath, None, provider="gdal" )
 
-            elif dataType == "service":
+            elif arclyr["type"] == "service":
                 if not 'serviceProperties' in arclyr.keys(): continue
                 if arclyr['serviceProperties']['ServiceType'].upper() != 'WMS' : continue
 
                 url = arclyr['serviceProperties']['URL'].split("?")[0]
-                layerName = arclyr['serviceProperties']['Name']
-                style = ""
+                layerNames = arclyr['serviceProperties']['Names']
                 crs = self.mxd.crsCode
+                wmsUri = wmsTransLator.makeWMSurl(url, layerNames, crs )
 
-                wmsUri = escape( "dpiMode=7&url=%s&layers=%s&format=image/png&styles=%s&crs=EPSG:%s" % (url, layerName, style, crs) )
                 qgsLyr.setDatasource(wmsUri, None, provider="wms" )
 
             self.prjQgs.addLayer(qgsLyr, checked= arclyr['visible'])
@@ -106,7 +108,7 @@ class mxd2qgs:
 
 
 
-    #-----------private-------------
+    #-----------this find a better way for this-------------
     # def _makeLayerTree(self):
     #     self.qgsTree = qgsLayerTree()
     #     layers = self.prjQgs.layers

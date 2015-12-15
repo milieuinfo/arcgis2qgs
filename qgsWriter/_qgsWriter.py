@@ -45,17 +45,14 @@ class qgsWriter:
         self.qgis.append(mapcanvas)
         return mapcanvas
 
-    def addLayerTree(self, tree):
-        """
-        :param tree: a instance of qgsLayerTree
-        """
+    def _addLayerTree(self, tree):
         if isinstance(tree, qgsLayerTree):
             self.qgis.append( tree.node() )
         else:
             raise Exception("tree is not a qgsLayerTree")
 
     def _addLegendItem(self, layerName, active=False, opened=True, checked=True, visible=True, drawingOrder=-1):
-        layerID = layerName + datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+        layerID = layerName.replace("//","").replace(" ", '_') + datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
         if active:
             self.legend.attrib['activeLayer'] = layerID
@@ -81,7 +78,16 @@ class qgsWriter:
         return qgsSrs(proj4, srsid, crs, description, "", ellipsoidacronym, geographic)
 
     #--------------Public-----------------#
-    def addLayer(self, mapLayer, active=False, opened=True, checked=True, visible=True, drawingOrder=-1, group=None):
+    def addLayer(self, mapLayer, active=False, opened=True, checked=True, visible=True, drawingOrder=-1):
+        """
+        Add layer to QGS
+        :param mapLayer: the qgsMaplayer to add
+        :param active: True if the layers is active
+        :param opened: True if unfolded
+        :param checked: True if checkbox is checked
+        :param visible: True if is visible
+        :param drawingOrder: -1 is below previously added layers
+        """
         layerID = self._addLegendItem( mapLayer.layerName, active, opened, checked, visible, drawingOrder)
         #set new laterID
         mapLayer.layerID = layerID
@@ -90,9 +96,13 @@ class qgsWriter:
         self._addProjectLayerItem(mapLayer)
 
     def save(self, qgsFilePath):
+        """
+        Save the QGS-file
+        :param qgsFilePath: the path to the output file.
+        """
         tree= ET.ElementTree(self.qgis)
         tree.write(qgsFilePath)
 
     def toSring(self):
-        "for debugging purposes"
+        """for debugging purposes"""
         return ET.tostring( self.qgis )

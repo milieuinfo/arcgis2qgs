@@ -73,7 +73,7 @@ class qgsMapLayer:
         """
         if self._type != "vector":
            return False #only for vectors
-        if renderer != None:
+        if renderer is not None:
            self.renderer = renderer
            return True
 

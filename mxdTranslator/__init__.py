@@ -1,1 +1,5 @@
 from _mxd2qgs import mxd2qgs
+from _wmsTransLator import wmsTransLator
+from _pointTranslator import pointTranslator
+from _polylineTranslator import polylineTranslator
+from _polygonTranslator import polygonTranslator
