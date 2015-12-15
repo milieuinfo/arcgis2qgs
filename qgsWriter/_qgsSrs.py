@@ -12,6 +12,7 @@ class qgsSrs:
         :param projectionacronym: the projection acronym
         :param ellipsoidacronym: the ellipsoid acronym
         :param geographic: bool, true if not projected
+        :param auth: authority like EPSG or ESRI
         """
         self.proj4 = proj4
         self.srsid = srsid

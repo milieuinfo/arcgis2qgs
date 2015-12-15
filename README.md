@@ -5,7 +5,7 @@ The QGIS-toolbox for Arcgis
 About
 ------
 
-Translate a Arcgis .mxd projectfile to a QGIS .qgs project file, only shapefiles, FGDB-feature classes en File rasters (like .tif) will be available. 
+Translate a Arcgis .mxd projectfile to a QGIS .qgs project file, only shapefiles, FGDB-feature classes, WMS-services en File rasters (like .tif) will be available. 
 Markers with icons connot be translated in to QGIS, so only simple symbogy will be supported.
 Only single value and unique value rendering symbology for features is supported. Raster symbogy is also unsupported right now. For other types of symboly a white single value renderer will be used.
 Labels wil be added but label properties are not supported

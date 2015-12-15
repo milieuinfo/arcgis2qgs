@@ -33,7 +33,7 @@ class mxdReader:
 
         self.crsProj4 = srsLookUp().wkid2proj4(self.crsCode, "proj4")
 
-        self.bbox = [ self.df.extent.lowerLeft.X, self.df.extent.lowerLeft.Y,
+        self.bbox = [ self.df.extent.lowerLeft.X , self.df.extent.lowerLeft.Y ,
                       self.df.extent.upperRight.X, self.df.extent.upperRight.Y ]
 
         self.layers = []
@@ -59,6 +59,10 @@ class mxdReader:
                 layer['layout'] = symbols
 
                 ds = arcpy.Describe( lyr.dataSource )
+                layer['crsID'] = ds.Spatialreference.factoryCode
+                layer['crsName'] = ds.Spatialreference.name
+                layer['crsGeographic'] = not ds.Spatialreference.PCSCode > 0
+                layer['crsAuth'] =  "EPSG" if self.crsCode < 32767 else "ESRI"
 
                 if "point" in ds.ShapeType.lower(): layer['geomType'] = "Point"
                 elif "line" in ds.ShapeType.lower(): layer['geomType'] = "Line"
@@ -76,10 +80,15 @@ class mxdReader:
                 layer["type"] = "group"
                 layer["childeren"] = [n.longName for n in arcpy.mapping.ListLayers(lyr)
                                                                  if not n.isServiceLayer ][1:]
-
             elif lyr.isRasterLayer:
                 layer["type"] = "raster"
                 layer["path"] = lyr.dataSource
+
+                ds = arcpy.Describe( lyr.dataSource )
+                layer['crsID'] = ds.Spatialreference.factoryCode
+                layer['crsName'] = ds.Spatialreference.name
+                layer['crsGeographic'] = not ds.Spatialreference.PCSCode > 0
+                layer['crsAuth'] =  "EPSG" if self.crsCode < 32767 else "ESRI"
 
             elif lyr.isServiceLayer and not lyr.isGroupLayer:
                 URL =  lyr.serviceProperties['URL']

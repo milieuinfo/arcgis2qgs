@@ -27,14 +27,18 @@ class mxd2qgs:
                                 srs= self.prjSrs)
 
         for arclyr in  self.mxd.layers:
-            lyrSrs = self.prjSrs   #TODO -> find out lyr srs if not same as map crs
-
             if 'serviceProperties' in arclyr.keys() and arclyr['serviceProperties']['ServiceType'] == 'WMS':
                 dataType = 'raster' #WMS is raster in QGIS
             else:
                 dataType =  arclyr["type"]
 
-            if dataType not in ["vector", "raster", "service"]: continue # other types are not supported yet
+            if arclyr["type"] not in ["vector", "raster", "service"]: continue # other types are not supported yet
+
+            if 'crsID' in arclyr.keys():
+                lyrSrs = qgsSrs( description=arclyr['crsName'], crs=arclyr['crsID'],
+                                 auth=arclyr['crsAuth'] , geographic=arclyr['crsGeographic']  )
+            else:
+                lyrSrs = self.prjSrs
 
             dataName = arclyr["name"]
 
@@ -45,7 +49,7 @@ class mxd2qgs:
 
             if arclyr["type"] == "vector":
                dataPath = arclyr["path"]
-                #TODO def query
+               #TODO def query
                if dataPath.endswith(".shp"):
                   qgsLyr.setDatasource(dataPath, None, provider="ogr" )
                else:
