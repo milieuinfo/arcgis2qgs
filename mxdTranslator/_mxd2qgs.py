@@ -107,12 +107,7 @@ class mxd2qgs:
 
 
 
-
-
-
-
-
-    #-----------this find a better way for this-------------
+    #--------------- find a better way for this-------------
     # def _makeLayerTree(self):
     #     self.qgsTree = qgsLayerTree()
     #     layers = self.prjQgs.layers

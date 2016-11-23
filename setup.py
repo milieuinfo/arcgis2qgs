@@ -3,10 +3,8 @@ setup(name='QGIS Tools for Arcgis',
     description='Translate ESRI Arcgis .mxd files to QGIS .qgs files.',
     author='Kay Warrie',
     author_email='kaywarrie@gmail.com',
-    version='1.0',
+    version='1.1',
     packages=['mxdParser','mxdTranslator','qgsWriter' ],
-    package_dir={'qgsWriter': 'qgsWriter',
-                 'mxdTranslator':'mxdTranslator',
-                 'mxdParser':'mxdParser'},
+    package_dir={'qgsWriter': 'qgsWriter', 'mxdTranslator':'mxdTranslator', 'mxdParser':'mxdParser'},
     data_files=[('Lib/site-packages/mxdTranslator/esri/toolboxes', ['QGIStool.pyt'])]
     )
