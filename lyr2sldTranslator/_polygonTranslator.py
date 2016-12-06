@@ -6,7 +6,7 @@ class polygonTranslator:
         pass
 
     @staticmethod
-    def getPolygonRender(layout, minScale=-1, maxScale=-1, name=""):
+    def getPolygonRender(layout, minScale=-1, maxScale=-1, name="", labelField=None):
         sldStyle = sld.style()
 
         if 'symbol' in layout.keys():
@@ -25,7 +25,7 @@ class polygonTranslator:
 
             symbol = sld.vectorSymbol(dtype="PolygonSymbolizer", fillColor=colorHex, strokeColor=outLine_colorHex,
                                       strokeWidth=outLine_width,  opacity=opacity)
-            sldStyle.addRule(name=name, Symbolizer=symbol, MinScale=minScale, MaxScale=maxScale)
+            sldStyle.addRule(name=name, Symbolizer=symbol, MinScale=minScale, MaxScale=maxScale, labelField=labelField)
 
         elif "uniqueValueInfos" in layout.keys():
             target_attr = layout['field1']
@@ -52,7 +52,7 @@ class polygonTranslator:
                     label = str(valueInfo['value']) if not "label" in valueInfo.keys() else valueInfo["label"]
 
                     sldStyle.addRule(name=label, Filter=ogcFilter, title=label, Symbolizer=symbol,
-                                     MinScale=minScale, MaxScale=maxScale)
+                                     MinScale=minScale, MaxScale=maxScale, labelField=labelField)
 
             if 'defaultSymbol' in layout.keys():
                 color_rbga = layout['defaultSymbol']['color']
@@ -70,7 +70,8 @@ class polygonTranslator:
                 symbol = sld.vectorSymbol(dtype="PolygonSymbolizer", fillColor=colorHex,
                                           strokeColor=outLine_colorHex, strokeWidth=outLine_width, opacity=opacity)
 
-                sldStyle.addRule(name=label, title=label, Filter=ogcFilter, Symbolizer=symbol, MinScale=minScale, MaxScale=maxScale)
+                sldStyle.addRule(name=label, title=label, Filter=ogcFilter, Symbolizer=symbol,
+                                 MinScale=minScale, MaxScale=maxScale, labelField=labelField)
 
         elif "classBreakInfos"  in layout.keys():
             target_attr = layout['field']
@@ -95,11 +96,11 @@ class polygonTranslator:
 
                     if 'label' in valueInfo.keys(): #if label left blank, there will be no label key
                         sldStyle.addRule(name=valueInfo['label'], Filter=ogcFilter, title=valueInfo['label'],
-                                         Symbolizer=symbol, MinScale=minScale, MaxScale=maxScale)
+                                         Symbolizer=symbol, MinScale=minScale, MaxScale=maxScale, labelField=labelField)
                     else:
                         label = "{0} - {1}".format(valueInfo['classMinValue'], valueInfo['classMaxValue'])
                         sldStyle.addRule(name=label, Filter=ogcFilter, title=label, Symbolizer=symbol, MinScale=minScale,
-                                         MaxScale=maxScale)
+                                         MaxScale=maxScale, labelField=labelField)
         else:
             return None
 

@@ -19,7 +19,7 @@ class style:
         if len(description) > 0:
             ET.SubElement( self.FeatureTypeStyle, '{{{sld}}}Abstract'.format(**ns)).text = description
 
-    def addRule(self, name="", title="", description="", Filter=None, MinScale=-1, MaxScale=-1, Symbolizer=None ):
+    def addRule(self, name="", title="", description="", Filter=None, MinScale=-1, MaxScale=-1, Symbolizer=None, labelField=None ):
         rule = ET.SubElement( self.FeatureTypeStyle, '{{{sld}}}Rule'.format( **ns ))
         if len(name) > 0:
             ET.SubElement( rule, '{{{sld}}}Name'.format(**ns)).text = name
@@ -40,6 +40,16 @@ class style:
             rule.append( Symbolizer.node() )
         elif isinstance(Symbolizer, rasterSymbol ):
             rule.append( Symbolizer.node() )
+
+        if labelField:
+            txtSymbol = ET.SubElement( rule, "{{{sld}}}TextSymbolizer".format(**ns))
+            label = ET.SubElement(txtSymbol, "{{{sld}}}TextSymbolizer".format(**ns))
+            ET.SubElement(label,"{{{ogc}}}PropertyName".format(**ns)).text = labelField
+
+            ET.SubElement(txtSymbol, "{{{ogc}}}Font".format(**ns))
+
+            txtcColor = ET.SubElement(txtSymbol, "{{{sld}}}Fill".format(**ns))
+            ET.SubElement(txtcColor, "{{{sld}}}CssParameter ".format(**ns), name="fill").text = "#000000"
 
         return rule
 

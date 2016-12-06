@@ -6,7 +6,7 @@ class pointTranslator:
         pass
 
     @staticmethod
-    def getPointRender(layout, minScale=-1, maxScale=-1, name=""):
+    def getPointRender(layout, minScale=-1, maxScale=-1, name="", labelField=None):
         sldStyle = sld.style()
 
         if 'symbol' in layout.keys():
@@ -28,7 +28,8 @@ class pointTranslator:
             symbol = sld.vectorSymbol(dtype="PointSymbolizer", size=size, strokeColor=outLine_colorHex,
                                 strokeWidth=outLine_width, fillColor=colorHex, opacity=opacity, pointType=pointStyle)
 
-            sldStyle.addRule(name=name, title=name, Symbolizer=symbol, MinScale=minScale, MaxScale=maxScale)
+            sldStyle.addRule(name=name, title=name, Symbolizer=symbol, MinScale=minScale, MaxScale=maxScale,
+                             labelField=labelField)
 
         elif "uniqueValueInfos" in layout.keys():
             target_attr = layout['field1']
@@ -52,14 +53,14 @@ class pointTranslator:
                         pointStyle = "circle"
 
                     symbol = sld.vectorSymbol(dtype="PointSymbolizer", size=size, strokeColor=outLine_colorHex,
-                                  strokeWidth=outLine_width, fillColor=colorHex, opacity=opacity, pointType=pointStyle)
+                                     strokeWidth=outLine_width, fillColor=colorHex, opacity=opacity, pointType=pointStyle)
 
                     uniqueValues.append(valueInfo['value'])
                     ogcFilter = sld.ogcFilter.category(target_attr, str(valueInfo['value']))
                     label = str(valueInfo['value']) if not "label" in valueInfo.keys() else valueInfo["label"]
 
                     sldStyle.addRule(name=label, Filter=ogcFilter, title=label, Symbolizer=symbol,
-                                     MinScale=minScale, MaxScale=maxScale)
+                                     MinScale=minScale, MaxScale=maxScale, labelField=labelField)
 
             if 'defaultSymbol' in layout.keys():
                 size = layout['defaultSymbol']['size']
@@ -84,7 +85,7 @@ class pointTranslator:
                                  strokeWidth=outLine_width, fillColor=colorHex, opacity=opacity, pointType=pointStyle)
 
                 sldStyle.addRule(name=label, title=label, Filter=ogcFilter, Symbolizer=symbol, MinScale=minScale,
-                                 MaxScale=maxScale)
+                                 MaxScale=maxScale, labelField=labelField)
 
         elif "classBreakInfos"  in layout.keys():
             target_attr = layout['field']
@@ -111,10 +112,10 @@ class pointTranslator:
 
                     if 'label' in valueInfo.keys(): #if label left blank, there will be no label key
                         sldStyle.addRule(name=valueInfo['label'], Filter=ogcFilter, title=valueInfo['label'],
-                                  Symbolizer=symbol, MinScale=minScale, MaxScale=maxScale)
+                                  Symbolizer=symbol, MinScale=minScale, MaxScale=maxScale, labelField=labelField)
                     else:
                         label = "{0} - {1}".format(valueInfo['classMinValue'], valueInfo['classMaxValue'])
                         sldStyle.addRule(name=label, Filter=ogcFilter, title=label, Symbolizer=symbol, MinScale=minScale,
-                                  MaxScale=maxScale)
+                                  MaxScale=maxScale, labelField=labelField)
 
         return sldStyle

@@ -6,7 +6,7 @@ class polylineTranslator:
         pass
 
     @staticmethod
-    def getLineRender(layout, minScale=-1, maxScale=-1, name=""):
+    def getLineRender(layout, minScale=-1, maxScale=-1, name="", labelField=None):
         sldStyle = sld.style()
 
         if 'symbol' in layout.keys():
@@ -16,7 +16,7 @@ class polylineTranslator:
             outLine_width = layout['symbol']['width']
 
             symbol = sld.vectorSymbol(dtype="LineSymbolizer", strokeColor=colorHex, strokeWidth=outLine_width, opacity=opacity)
-            sldStyle.addRule(name=name, Symbolizer=symbol, MinScale=minScale, MaxScale=maxScale)
+            sldStyle.addRule(name=name, Symbolizer=symbol, MinScale=minScale, MaxScale=maxScale, labelField=labelField)
 
         elif "uniqueValueInfos" in layout.keys():
             target_attr = layout['field1']
@@ -37,7 +37,7 @@ class polylineTranslator:
                     label = str(valueInfo['value']) if not "label" in valueInfo.keys() else valueInfo["label"]
 
                     sldStyle.addRule(name=label, Filter=ogcFilter, title=label, Symbolizer=symbol,
-                                     MinScale=minScale, MaxScale=maxScale)
+                                     MinScale=minScale, MaxScale=maxScale, labelField=labelField)
 
                 if 'defaultSymbol' in layout.keys():
                     color_rgba =  layout['defaultSymbol']['color']
@@ -52,7 +52,7 @@ class polylineTranslator:
                     ogcFilter = sld.ogcFilter.notInCollection(target_attr, uniqueValues)
 
                     sldStyle.addRule(name=label, title=label, Filter=ogcFilter, Symbolizer=symbol,
-                                     MinScale=minScale, MaxScale=maxScale)
+                                     MinScale=minScale, MaxScale=maxScale, labelField=labelField)
 
         elif "classBreakInfos"  in layout.keys():
             target_attr = layout['field']
@@ -71,11 +71,11 @@ class polylineTranslator:
                     if 'label' in valueInfo.keys():
                         label = valueInfo['label']
                         sldStyle.addRule(name=label, title=label, Filter=ogcFilter, Symbolizer=symbol,
-                                         MinScale=minScale, MaxScale=maxScale)
+                                         MinScale=minScale, MaxScale=maxScale, labelField=labelField)
                     else:
                         label = "{0} - {1}".format(valueInfo['classMinValue'], valueInfo['classMaxValue'])
                         sldStyle.addRule(name=label, title=label, Filter=ogcFilter, Symbolizer=symbol,
-                                         MinScale=minScale, MaxScale=maxScale)
+                                         MinScale=minScale, MaxScale=maxScale, labelField=labelField)
         else:
             return None
 
