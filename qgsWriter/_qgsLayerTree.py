@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import xml.etree.ElementTree as ET
+import xml.etree.cElementTree as ET
 
 class qgsLayerTree:
     def __init__(self, rootName=""):

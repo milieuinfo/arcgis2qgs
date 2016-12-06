@@ -1,5 +1,5 @@
-import os, sys, datetime
-import xml.etree.ElementTree as ET
+import datetime
+import xml.etree.cElementTree as ET
 from _qgsSrs import qgsSrs
 from _qgsRenderer import qgsRenderer
 from _qgsSymbol import qgsSymbol

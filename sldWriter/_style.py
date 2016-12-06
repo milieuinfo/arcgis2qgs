@@ -1,5 +1,5 @@
 from bootstrap import *
-from _filter import sldFilter
+from _filter import ogcFilter
 from _vectorSymbol import vectorSymbol
 from _rasterSymbol import rasterSymbol
 
@@ -13,7 +13,7 @@ class style:
         """
         self.FeatureTypeStyle = ET.Element('{{{sld}}}FeatureTypeStyle'.format( **ns ))
         if len(name) > 0:
-            ET.SubElement( self.FeatureTypeStyle, '{{{sld}}}Name'.format( **ns )).text = name
+            ET.SubElement( self.FeatureTypeStyle, '{{{sld}}}Name'.format(**ns)).text = name
         if len(title) > 0:
             ET.SubElement( self.FeatureTypeStyle, '{{{sld}}}Title'.format(**ns)).text = title
         if len(description) > 0:
@@ -22,13 +22,13 @@ class style:
     def addRule(self, name="", title="", description="", Filter=None, MinScale=-1, MaxScale=-1, Symbolizer=None ):
         rule = ET.SubElement( self.FeatureTypeStyle, '{{{sld}}}Rule'.format( **ns ))
         if len(name) > 0:
-            ET.SubElement( rule, '{{{sld}}}Name'.format( **ns )).text = name
+            ET.SubElement( rule, '{{{sld}}}Name'.format(**ns)).text = name
         if len(title) > 0:
             ET.SubElement( rule, '{{{sld}}}Title'.format(**ns)).text = title
         if len(description) > 0:
             ET.SubElement( rule, '{{{sld}}}Abstract'.format(**ns)).text = description
 
-        if isinstance(Filter, sldFilter):
+        if isinstance(Filter, ogcFilter):
             rule.append( Filter.node() )
 
         if MinScale >= 0:
@@ -44,6 +44,6 @@ class style:
         return rule
 
     def node(self):
-        """":return: a ElementTree xml-node"""
+        """:return: a ElementTree xml-node"""
         return self.FeatureTypeStyle
 

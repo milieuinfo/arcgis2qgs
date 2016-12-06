@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import datetime
-import xml.etree.ElementTree as ET
+import xml.etree.cElementTree as ET
 from _qgsSrs import qgsSrs
 from _qgsLayerTree import qgsLayerTree
 

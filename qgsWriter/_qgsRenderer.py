@@ -1,4 +1,4 @@
-import xml.etree.ElementTree as ET
+import xml.etree.cElementTree as ET
 
 class qgsRenderer:
     def __init__(self, symbolType , symbollevels=0, target_attr=None, force_raster=False, graduatedMethod=None):

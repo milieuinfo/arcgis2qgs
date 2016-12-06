@@ -15,12 +15,12 @@ class sldWriter:
         else:
             raise Exception("instance is not a NamedLayer")
 
-    def save(self, sldFilePath):
+    def save(self, sldFilePath, pretty=False):
         """Save the sldqgsFilePath: the path to the output file."""
         tree = ET.ElementTree(self.StyledLayerDescriptor)
-        tree.write(sldFilePath)
-
-    def printString(self):
-        """for debugging purposes"""
-        sldTXT = ET.tostring(self.StyledLayerDescriptor)
-        print dom.parseString(sldTXT).toprettyxml()
+        if pretty:
+            sldTXT = ET.tostring(self.StyledLayerDescriptor)
+            with open(sldFilePath, 'w') as fl:
+                fl.write(dom.parseString(sldTXT).toprettyxml())
+        else:
+            tree.write(sldFilePath)

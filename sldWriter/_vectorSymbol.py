@@ -21,7 +21,7 @@ class vectorSymbol:
             raise Exception(
             '{0} is not a supported symboly type, only {1} are supporded'.format(dtype, ", ".join(self.dtypes) ))
 
-        self.symbol = ET.Element( "{{{sld}}}".format(**ns)+ dtype )
+        self.symbol = ET.Element( "{{{sld}}}".format(**ns)+ dtype , uom="http://www.opengeospatial.org/se/units/pixel")
 
         if dtype == "PointSymbolizer":
             if externalGraphic:
@@ -31,13 +31,13 @@ class vectorSymbol:
                 Graphic= self._getSimpleGrapic(size, fillColor, strokeColor, strokeWidth, rotation, opacity, pointType)
                 self.symbol.append(Graphic)
             else:
-                raise Exception("Parameter of grapic are not correct")
+                raise Exception("Parameters of grapic are not correct")
 
         elif dtype == "LineSymbolizer":
             stroke = ET.SubElement( self.symbol, "{{{sld}}}Stroke".format(**ns) )
             ET.SubElement(stroke, "{{{sld}}}CssParameter".format(**ns), name="stroke" ).text = strokeColor
-            ET.SubElement(stroke, "{{{sld}}}CssParameter".format(**ns), name="stroke-width").text = strokeWidth
-            ET.SubElement(stroke, "{{{sld}}}CssParameter".format(**ns), name="stroke-opacity").text = opacity
+            ET.SubElement(stroke, "{{{sld}}}CssParameter".format(**ns), name="stroke-width").text = str(strokeWidth)
+            ET.SubElement(stroke, "{{{sld}}}CssParameter".format(**ns), name="stroke-opacity").text = str(opacity)
 
         elif dtype ==  "PolygonSymbolizer":
             stroke = ET.SubElement( self.symbol, "{{{sld}}}Stroke".format(**ns) )
@@ -54,21 +54,28 @@ class vectorSymbol:
         grapicTXT = """
         <Graphic xmlns="http://www.opengis.net/sld" >
             <Mark>
-                <WellKnownName>{{typeName}}</WellKnownName>
+                <WellKnownName>{typeName}</WellKnownName>
                 <Fill>
-                    <CssParameter name="fill">{{color}}</CssParameter>
+                    <CssParameter name="fill">{color}</CssParameter>
                 </Fill>
                 <Stroke>
-                    <CssParameter name="stroke">{{color_border}}</CssParameter>
-                    <CssParameter name="stroke-width">{{border_width}}</CssParameter>
+                    <CssParameter name="stroke">{color_border}</CssParameter>
+                    <CssParameter name="stroke-width">{border_width}</CssParameter>
                 </Stroke>
             </Mark>
-            <Size>{{size}}</Size>
-            <Rotation>{{angle}}</Rotation>
-            <Opacity>{{opacity}}</Opacity>
+            <Size>{size}</Size>
+            <Rotation>{angle}</Rotation>
+            <Opacity>{opacity}</Opacity>
         </Graphic>""".format(size=size, color=color, color_border=color_border, opacity=opacity,
                              border_width=border_width, angle=angle, typeName=typeName )
-        return ET.fromstring(grapicTXT)
+        node = ET.fromstring(grapicTXT)
+
+        for elem in node.iter('*'):
+            if elem.text is not None:
+                elem.text = elem.text.strip()
+            if elem.tail is not None:
+                elem.tail = elem.tail.strip()
+        return node
 
     @staticmethod
     def _getExternalGraphic(link, size, angle , opacity):
@@ -85,15 +92,22 @@ class vectorSymbol:
         <Graphic xmlns="http://www.opengis.net/sld" >
            <ExternalGraphic>
                <OnlineResource xlink:type="simple"
-                               xlink:href="{{link}}" />
-               <Format>{{mime}}</Format>
+                               xlink:href="{link}" />
+               <Format>{mime}</Format>
            </ExternalGraphic>
-           <Size>{{size}}/Size>
-           <Rotation>{{angle}}</Rotation>
-           <Opacity>{{opacity}}</Opacity>
+           <Size>{size}</Size>
+           <Rotation>{angle}</Rotation>
+           <Opacity>{opacity}</Opacity>
         </Graphic>""".format(size=size, opacity=opacity, angle=angle, link=link, mime=mime )
 
-        return ET.fromstring(grapicTXT)
+        node = ET.fromstring(grapicTXT)
+
+        for elem in node.iter('*'):
+            if elem.text is not None:
+                elem.text = elem.text.strip()
+            if elem.tail is not None:
+                elem.tail = elem.tail.strip()
+        return node
 
     def node(self):
         """:return: a ElementTree xml-node of the symbol in the QGIS format"""

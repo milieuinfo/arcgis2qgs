@@ -3,20 +3,37 @@ import os, arcpy, json
 from _srsLookUp import srsLookUp
 
 class mxdReader:
-    def __init__(self, mxdPath):
+    def __init__(self, mxdOrLyrPath=""):
         """
-        :param mxdPath: path to the ESRI mapfile (.mxd)
+        :param mxdOrLyrPath: path to the ESRI mapfile (.mxd), ESROI layerfiles (.lyr) are also accecpted
         """
-        self.mxd = arcpy.mapping.MapDocument(mxdPath)
-        self.df = arcpy.mapping.ListDataFrames(self.mxd)[0]
-        self.srs = self.df.spatialReference
+        if mxdOrLyrPath.endswith(".mxd"):
+            self.isMxd = True
+            self.layerCollection = arcpy.mapping.MapDocument(mxdOrLyrPath)
+            self.df = arcpy.mapping.ListDataFrames(self.layerCollection)[0]
+            self.srs = self.df.spatialReference
+            self.bbox = [self.df.extent.lowerLeft.X, self.df.extent.lowerLeft.Y,
+                         self.df.extent.upperRight.X, self.df.extent.upperRight.Y]
 
-        self.title = self.mxd.title
-        self.desciption = self.mxd.description
-        self.author = self.mxd.author
+            self.title = self.layerCollection.title
+            self.author = self.layerCollection.author
+            self.desciption = self.layerCollection.description
+            self.mapUnits = self.df.mapUnits
+            self.rotation = self.df.rotation
 
-        self.mapUnits =  self.df.mapUnits
-        self.rotation = self.df.rotation
+        elif mxdOrLyrPath.endswith(".lyr"):
+            self.isMxd = False
+            self.layerCollection = arcpy.mapping.Layer(mxdOrLyrPath)
+            self.df = None
+            self.srs = arcpy.Describe( self.layerCollection.dataSource ).Spatialreference
+            self.bbox = [self.layerCollection.getExtent().lowerLeft.X, self.layerCollection.getExtent().lowerLeft.Y,
+                         self.layerCollection.getExtent().upperRight.X, self.layerCollection.getExtent().upperRight.Y]
+
+            self.title = self.layerCollection.longName
+            self.author = self.layerCollection.credits
+            self.desciption = self.layerCollection.description
+            self.mapUnits = 'Meters'
+            self.rotation = 0
 
         #CRS
         self.crsGeographic = not self.srs.PCSCode > 0
@@ -33,19 +50,17 @@ class mxdReader:
 
         self.crsProj4 = srsLookUp().wkid2proj4(self.crsCode, "proj4")
 
-        self.bbox = [ self.df.extent.lowerLeft.X , self.df.extent.lowerLeft.Y ,
-                      self.df.extent.upperRight.X, self.df.extent.upperRight.Y ]
-
         self.layers = []
         self._layersInfo()
 
     def _layersInfo(self):
-        lyrs = arcpy.mapping.ListLayers(self.df)
+        lyrs = arcpy.mapping.ListLayers(self.layerCollection)
         flatWMSProps = self.flattenWMS(lyrs)
         urls = []
 
         for lyr in lyrs:
-            layer = {"name": lyr.longName, "visible": lyr.visible}
+            layer = {"name": lyr.longName, "visible": lyr.visible, "description": lyr.description,
+                     "minScale": lyr.minScale, "maxScale": lyr.maxScale}
 
             if lyr.isFeatureLayer:
                 if not arcpy.Exists( lyr.dataSource ): continue
@@ -107,6 +122,10 @@ class mxdReader:
 
     @staticmethod
     def flattenWMS(lyrs):
+        """
+        :param lyrs: a iterator with layers, Like from arcpy.ListLayerd
+        :return: a list with the sublayers in de ServiceLayer
+        """
         URLs = []
         mergeLyrsProps = []
 
@@ -125,5 +144,5 @@ class mxdReader:
         return  mergeLyrsProps
 
     def __del__(self):
-        del self.mxd
+        del self.layerCollection
         del self.df
