@@ -58,5 +58,5 @@ Then you have to make sure that the al the library folders are present in the sa
 
 Remark: import SLD in QGIS
 ------
-
+See: http://docs.qgis.org/2.14/en/docs/user_manual/working_with_vector/vector_properties.html?highlight=sld#save-and-share-layer-properties
 
