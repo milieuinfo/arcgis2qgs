@@ -8,9 +8,9 @@ About
 *This an ESRI python-toolbox for arcgis to convert mxd-projects to QGS-projects and layers to OGC SLD-files.
 There are 2 tools in the toolbox:*
 
-![The toolbox](img/2016-12-07_QGIS toolbox.png)
+![](img/2016-12-07_QGIS%20toolbox.png "The toolbox")
 
-###MXD to QGIS
+**MXD to QGIS**
 
 Translate a Arcgis .mxd projectfile to a QGIS .qgs project file, only shapefiles, 
 FGDB-feature classes, WMS-services en File rasters (like .tif) will be available. 
@@ -20,9 +20,9 @@ Raster symbogy is also unsupported right now.
 For other types of symboly a white single value renderer will be used.
 Labels wil be added but label properties are not supported.
 
-![The toolbox](img/2016-12-07_MXD to QGIS.png)
+![](img/2016-12-07_MXD%20to%20QGIS.png "The toolbox")
 
-###Layer to SLD
+**Layer to SLD**
 
 Convert a layer to a 'Styled Layer Descriptor', a SLD-file.
 SLD is an OGC standard to store the layout of a GIS layer. 
@@ -31,7 +31,7 @@ Only vector-layout and classified rasters are support right now.
 
 More info about SLD-concepts can be found on the OGC website: http://www.opengeospatial.org/standards/sld .
 
-![The toolbox](img/2016-12-07_Layer to SLD.png)
+![](img/2016-12-07_Layer%20to%20SLD.png "The toolbox")
 
 Install / Build
 -----
